@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍳 꼬마 요리사의 맛있는 레스토랑</title>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Jua', sans-serif; /* 귀여운 폰트 적용 */
+            background-color: #fdf6e3; /* 따뜻한 배경색 */
+            overflow-x: hidden;
+        }
+        
+        /* 귀여운 그림자 효과 */
+        .cute-shadow {
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1), 0 8px 20px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .cute-shadow:active {
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+            transform: translateY(2px);
+        }
+
+        /* 통통 튀는 애니메이션 */
+        @keyframes bounce-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-bounce-gentle {
+            animation: bounce-gentle 2s infinite;
+        }
+        
+        /* 클릭 가능한 요소 커서 변경 */
+        .clickable {
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // 라이브러리 연결
+        const { useState, useEffect, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion; // CDN에서는 window.Motion으로 접근
+
+        // 🔊 사운드 효과 시스템
+        const SoundSystem = {
+            audioContext: null,
+            
+            // AudioContext 초기화 (브라우저 정책상 사용자 인터랙션 후 초기화 필요)
+            init() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+            },
+            
+            // 재료 담기 소리 (똑!)
+            playPop() {
+                this.init();
+                const ctx = this.audioContext;
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 0.1);
+            },
+            
+            // 요리 완성 소리 (띠링~)
+            playSuccess() {
+                this.init();
+                const ctx = this.audioContext;
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                
+                oscillator.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                oscillator.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                oscillator.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 0.4);
+            },
+            
+            // 냠냠 소리 (동물이 먹는 소리)
+            playEating() {
+                this.init();
+                const ctx = this.audioContext;
+                
+                // 냠냠 소리 (3번 반복)
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => {
+                        const oscillator = ctx.createOscillator();
+                        const gainNode = ctx.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(ctx.destination);
+                        
+                        oscillator.frequency.value = 300 + Math.random() * 200;
+                        oscillator.type = 'square';
+                        
+                        gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                        
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.15);
+                    }, i * 300);
+                }
+            },
+            
+            // 동전 소리
+            playCoin() {
+                this.init();
+                const ctx = this.audioContext;
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                
+                oscillator.frequency.setValueAtTime(1000, ctx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1500, ctx.currentTime + 0.1);
+                oscillator.type = 'triangle';
+                
+                gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 0.2);
+            },
+            
+            // 실패 소리 (어머나...)
+            playFail() {
+                this.init();
+                const ctx = this.audioContext;
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                
+                oscillator.frequency.setValueAtTime(400, ctx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+                oscillator.type = 'sawtooth';
+                
+                gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + 0.3);
+            },
+            
+            // 레벨업 소리 (팡파레)
+            playLevelUp() {
+                this.init();
+                const ctx = this.audioContext;
+                const notes = [523.25, 587.33, 659.25, 783.99]; // C-D-E-G
+                
+                notes.forEach((freq, i) => {
+                    setTimeout(() => {
+                        const oscillator = ctx.createOscillator();
+                        const gainNode = ctx.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(ctx.destination);
+                        
+                        oscillator.frequency.value = freq;
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                        
+                        oscillator.start(ctx.currentTime);
+                        oscillator.stop(ctx.currentTime + 0.3);
+                    }, i * 150);
+                });
+            }
+        };
+
+        // 한글 조사 자동 처리 헬퍼 함수
+        function getJosa(name, josa) {
+            const lastChar = name.charAt(name.length - 1);
+            const code = lastChar.charCodeAt(0) - 0xAC00;
+            const hasFinalConsonant = code % 28 !== 0;
+            
+            if (josa === '이/가') {
+                return hasFinalConsonant ? '이' : '가';
+            } else if (josa === '을/를') {
+                return hasFinalConsonant ? '을' : '를';
+            } else if (josa === '은/는') {
+                return hasFinalConsonant ? '은' : '는';
+            }
+            return '';
+        }
+
+        // 게임 데이터
+const GAME_DATA = {
+    // 재료 데이터
+    ingredients: {
+        // 수습요리사 재료 (Level 1)
+        apple: { id: 'apple', name: '사과', emoji: '🍎', category: 'fruit', level: 1 },
+        banana: { id: 'banana', name: '바나나', emoji: '🍌', category: 'fruit', level: 1 },
+        carrot: { id: 'carrot', name: '당근', emoji: '🥕', category: 'vegetable', level: 1 },
+        tomato: { id: 'tomato', name: '토마토', emoji: '🍅', category: 'vegetable', level: 1 },
+        onion: { id: 'onion', name: '양파', emoji: '🧅', category: 'vegetable', level: 1 },
+        potato: { id: 'potato', name: '감자', emoji: '🥔', category: 'vegetable', level: 1 },
+        milk: { id: 'milk', name: '우유', emoji: '🥛', category: 'dairy', level: 1 },
+        egg: { id: 'egg', name: '계란', emoji: '🥚', category: 'protein', level: 1 },
+        cheese: { id: 'cheese', name: '치즈', emoji: '🧀', category: 'dairy', level: 1 },
+        bread: { id: 'bread', name: '빵', emoji: '🍞', category: 'grain', level: 1 },
+        // [NEW] 딸기, 초콜릿 추가
+        strawberry: { id: 'strawberry', name: '딸기', emoji: '🍓', category: 'fruit', level: 1 },
+        chocolate: { id: 'chocolate', name: '초콜릿', emoji: '🍫', category: 'sweets', level: 1 },
+
+        // 요리사 추가 재료 (Level 2)
+        cucumber: { id: 'cucumber', name: '오이', emoji: '🥒', category: 'vegetable', level: 2 },
+        mushroom: { id: 'mushroom', name: '버섯', emoji: '🍄', category: 'vegetable', level: 2 },
+        bacon: { id: 'bacon', name: '베이컨', emoji: '🥓', category: 'protein', level: 2 },
+        rice: { id: 'rice', name: '쌀', emoji: '🍚', category: 'grain', level: 2 },
+        noodle: { id: 'noodle', name: '면', emoji: '🍜', category: 'grain', level: 2 },
+        // [NEW] 닭고기, 상추 추가
+        chicken: { id: 'chicken', name: '닭고기', emoji: '🍗', category: 'protein', level: 2 },
+        lettuce: { id: 'lettuce', name: '상추', emoji: '🥬', category: 'vegetable', level: 2 },
+
+        // 전문요리사 추가 재료 (Level 3)
+        broccoli: { id: 'broccoli', name: '브로콜리', emoji: '🥦', category: 'vegetable', level: 3 },
+        corn: { id: 'corn', name: '옥수수', emoji: '🌽', category: 'vegetable', level: 3 },
+        pumpkin: { id: 'pumpkin', name: '호박', emoji: '🎃', category: 'vegetable', level: 3 },
+        pepper: { id: 'pepper', name: '피망', emoji: '🫑', category: 'vegetable', level: 3 },
+        fish: { id: 'fish', name: '생선', emoji: '🐟', category: 'protein', level: 3 },
+        shrimp: { id: 'shrimp', name: '새우', emoji: '🦐', category: 'protein', level: 3 },
+        // [NEW] 소고기, 마늘 추가
+        beef: { id: 'beef', name: '소고기', emoji: '🥩', category: 'protein', level: 3 },
+        garlic: { id: 'garlic', name: '마늘', emoji: '🧄', category: 'vegetable', level: 3 },
+    },
+    
+    // 요리 메뉴
+    recipes: {
+        // --- 수습요리사 요리 (Level 1) ---
+        tomatoSoup: {
+            id: 'tomatoSoup',
+            name: '토마토 수프',
+            emoji: '🍲',
+            price: 500,
+            ingredients: ['tomato', 'tomato', 'onion'],
+            cookingTool: 'pot',
+            description: '빨간 토마토로 만든 따뜻한 수프',
+            level: 1
+        },
+        friedEgg: {
+            id: 'friedEgg',
+            name: '계란 후라이',
+            emoji: '🍳',
+            price: 300,
+            ingredients: ['egg', 'egg'],
+            cookingTool: 'pan',
+            description: '노릇노릇 계란 후라이',
+            level: 1
+        },
+        carrotSalad: {
+            id: 'carrotSalad',
+            name: '당근 샐러드',
+            emoji: '🥗',
+            price: 400,
+            ingredients: ['carrot', 'carrot', 'tomato'],
+            cookingTool: 'bowl',
+            description: '신선한 채소 샐러드',
+            level: 1
+        },
+        cheeseSandwich: {
+            id: 'cheeseSandwich',
+            name: '치즈 샌드위치',
+            emoji: '🥪',
+            price: 600,
+            ingredients: ['bread', 'cheese', 'tomato'],
+            cookingTool: 'pan',
+            description: '고소한 치즈 샌드위치',
+            level: 1
+        },
+        applePie: {
+            id: 'applePie',
+            name: '사과 파이',
+            emoji: '🥧',
+            price: 700,
+            ingredients: ['apple', 'apple', 'apple'],
+            cookingTool: 'pot',
+            description: '달콤한 사과 파이',
+            level: 1
+        },
+        // [NEW] 딸기 주스 (Level 1)
+        strawberryJuice: {
+            id: 'strawberryJuice',
+            name: '딸기 주스',
+            emoji: '🥤',
+            price: 500,
+            ingredients: ['strawberry', 'strawberry', 'milk'],
+            cookingTool: 'bowl',
+            description: '상큼하고 달콤한 리얼 딸기 주스',
+            level: 1
+        },
+
+        // --- 요리사 요리 (Level 2) ---
+        mushroomSoup: {
+            id: 'mushroomSoup',
+            name: '버섯 크림 수프',
+            emoji: '🍄',
+            price: 800,
+            ingredients: ['mushroom', 'mushroom', 'milk', 'onion'],
+            cookingTool: 'pot',
+            description: '부드러운 버섯 크림 수프',
+            level: 2
+        },
+        baconEggToast: {
+            id: 'baconEggToast',
+            name: '베이컨 에그 토스트',
+            emoji: '🍞',
+            price: 900,
+            ingredients: ['bread', 'bacon', 'egg', 'cheese'],
+            cookingTool: 'pan',
+            description: '든든한 베이컨 에그 토스트',
+            level: 2
+        },
+        friedRice: {
+            id: 'friedRice',
+            name: '볶음밥',
+            emoji: '🍳',
+            price: 700,
+            ingredients: ['rice', 'egg', 'carrot', 'onion'],
+            cookingTool: 'pan',
+            description: '맛있는 볶음밥',
+            level: 2
+        },
+        vegetableNoodle: {
+            id: 'vegetableNoodle',
+            name: '야채 라면',
+            emoji: '🍜',
+            price: 600,
+            ingredients: ['noodle', 'cucumber', 'carrot', 'egg'],
+            cookingTool: 'pot',
+            description: '건강한 야채 라면',
+            level: 2
+        },
+        potatoSalad: {
+            id: 'potatoSalad',
+            name: '감자 샐러드',
+            emoji: '🥔',
+            price: 500,
+            ingredients: ['potato', 'egg', 'cucumber', 'carrot'],
+            cookingTool: 'bowl',
+            description: '고소한 감자 샐러드',
+            level: 2
+        },
+        // [NEW] 치킨 샐러드 (Level 2)
+        chickenSalad: {
+            id: 'chickenSalad',
+            name: '치킨 샐러드',
+            emoji: '🥗',
+            price: 800,
+            ingredients: ['chicken', 'lettuce', 'tomato', 'cucumber'],
+            cookingTool: 'bowl',
+            description: '건강하고 든든한 닭가슴살 샐러드',
+            level: 2
+        },
+        // [NEW] 초코 케이크 (Level 2)
+        chocolateCake: {
+            id: 'chocolateCake',
+            name: '초코 케이크',
+            emoji: '🎂',
+            price: 900,
+            ingredients: ['bread', 'chocolate', 'egg', 'milk'],
+            cookingTool: 'pan',
+            description: '달콤한 초콜릿이 가득한 케이크',
+            level: 2
+        },
+
+        // --- 전문요리사 요리 (Level 3) ---
+        seafoodPasta: {
+            id: 'seafoodPasta',
+            name: '해산물 파스타',
+            emoji: '🍝',
+            price: 1200,
+            ingredients: ['noodle', 'shrimp', 'fish', 'tomato', 'onion'],
+            cookingTool: 'pan',
+            description: '풍성한 해산물 파스타',
+            level: 3
+        },
+        grilledFish: {
+            id: 'grilledFish',
+            name: '생선 구이',
+            emoji: '🐟',
+            price: 1000,
+            ingredients: ['fish', 'fish', 'pepper', 'broccoli'],
+            cookingTool: 'pan',
+            description: '신선한 생선 구이',
+            level: 3
+        },
+        cornSoup: {
+            id: 'cornSoup',
+            name: '옥수수 크림 수프',
+            emoji: '🌽',
+            price: 900,
+            ingredients: ['corn', 'corn', 'milk', 'potato'],
+            cookingTool: 'pot',
+            description: '달콤한 옥수수 수프',
+            level: 3
+        },
+        pumpkinRisotto: {
+            id: 'pumpkinRisotto',
+            name: '호박 리조또',
+            emoji: '🎃',
+            price: 1100,
+            ingredients: ['rice', 'pumpkin', 'cheese', 'mushroom', 'onion'],
+            cookingTool: 'pot',
+            description: '부드러운 호박 리조또',
+            level: 3
+        },
+        shrimpSalad: {
+            id: 'shrimpSalad',
+            name: '새우 샐러드',
+            emoji: '🦐',
+            price: 800,
+            ingredients: ['shrimp', 'broccoli', 'corn', 'tomato'],
+            cookingTool: 'bowl',
+            description: '신선한 새우 샐러드',
+            level: 3
+        },
+        vegetableStew: {
+            id: 'vegetableStew',
+            name: '야채 스튜',
+            emoji: '🥘',
+            price: 1000,
+            ingredients: ['potato', 'carrot', 'broccoli', 'pumpkin', 'onion'],
+            cookingTool: 'pot',
+            description: '푸짐한 야채 스튜',
+            level: 3
+        },
+        // [NEW] 마늘 스테이크 (Level 3)
+        garlicSteak: {
+            id: 'garlicSteak',
+            name: '마늘 스테이크',
+            emoji: '🥩',
+            price: 1500,
+            ingredients: ['beef', 'garlic', 'mushroom', 'pepper', 'onion'],
+            cookingTool: 'pan',
+            description: '마늘 향이 가득한 최고급 소고기 스테이크',
+            level: 3
+        },
+        // [NEW] 치즈 햄버거 (Level 3)
+        hamburger: {
+            id: 'hamburger',
+            name: '치즈 햄버거',
+            emoji: '🍔',
+            price: 1300,
+            ingredients: ['bread', 'beef', 'cheese', 'lettuce', 'tomato'],
+            cookingTool: 'pan',
+            description: '패티와 야채가 듬뿍 들어간 수제 버거',
+            level: 3
+        },
+        // 지온이의 스페셜 요리 (설기 전용)
+        jionSpecial: {
+            id: 'jionSpecial',
+            name: '지온이의 스페셜 요리',
+            emoji: '🌟',
+            price: 2000,
+            ingredients: ['shrimp', 'fish', 'bacon', 'cheese', 'broccoli', 'corn', 'mushroom', 'tomato'],
+            cookingTool: 'pan',
+            description: '최고급 재료로 만든 특별한 요리',
+            level: 3,
+            special: true
+        },
+        // [추가] 친구들을 위한 자유 레시피 (recipes 안에 있어야 함!)
+        freestyle: {
+            id: 'freestyle',
+            name: '친구를 위한 특별 요리',
+            emoji: '🎁',
+            price: 0,
+            ingredients: [],
+            cookingTool: 'any',
+            description: '친구가 좋아하는 재료를 듬뿍 넣어주세요!',
+            level: 1,
+            isFreestyle: true
+        }
+    }, // recipes 끝
+
+    // 동물 손님
+    animals: [
+        { id: 'dog', emoji: '🐶', name: '강아지', color: '#FFD700' },
+        { id: 'cat', emoji: '🐱', name: '고양이', color: '#FFB6C1' },
+        { id: 'bear', emoji: '🐻', name: '곰돌이', color: '#DEB887' },
+        { id: 'rabbit', emoji: '🐰', name: '토끼', color: '#E6E6FA' },
+        { id: 'fox', emoji: '🦊', name: '여우', color: '#FF8C69' },
+        { id: 'panda', emoji: '🐼', name: '판다', color: '#F0F0F0' },
+        { id: 'penguin', emoji: '🐧', name: '펭귄', color: '#B0E0E6' },
+        // [NEW] 새로운 동물 손님 5마리
+        { id: 'tiger', emoji: '🐯', name: '호랑이', color: '#FFA500' },
+        { id: 'lion', emoji: '🦁', name: '사자', color: '#F4A460' },
+        { id: 'koala', emoji: '🐨', name: '코알라', color: '#D3D3D3' },
+        { id: 'frog', emoji: '🐸', name: '개구리', color: '#98FB98' },
+        { id: 'chick', emoji: '🐥', name: '병아리', color: '#FFFFE0' },
+        
+        { id: 'corgi', emoji: '🐕', name: '설기', color: '#FFE4B5', special: 'jion' }, // 웰시코기 - 지온이의 스페셜 요리 주문
+        // 곤충 손님 (Level 3)
+        { id: 'beetle', emoji: '🪲', name: '장수풍뎅이', color: '#8B4513' },
+        { id: 'wasp', emoji: '🐝', name: '장수말벌', color: '#FFD700' },
+        { id: 'mantis', emoji: '🦗', name: '사마귀', color: '#90EE90' },
+        { id: 'dragonfly', emoji: '🦟', name: '잠자리', color: '#87CEEB' },
+        // [추가] 아들의 친구들
+        { id: 'junsu', emoji: '👦', name: '준수', color: '#A3D8FF', type: 'friend', desc: '말벌 박사' },
+        { id: 'minjun', emoji: '🧑', name: '민준', color: '#C3FFD8', type: 'friend', desc: '과학 대장' },
+        { id: 'taehee', emoji: '👧', name: '태희', color: '#FFC3C3', type: 'friend', desc: '보드게임 공주' },
+    ],
+    
+    // 화폐 (거스름돈용)
+    money: [
+        { value: 1000, emoji: '💵', name: '천원' },
+        { value: 500, emoji: '💴', name: '오백원' },
+        { value: 100, emoji: '🪙', name: '백원' },
+    ]
+};
+        // 조리 도구 정보
+        const COOKING_TOOLS = {
+            pot: { name: '냄비', emoji: '🍲', color: 'bg-red-100' },
+            pan: { name: '후라이팬', emoji: '🍳', color: 'bg-yellow-100' },
+            bowl: { name: '그릇', emoji: '🥗', color: 'bg-green-100' }
+        };
+
+        // 메인 게임 컴포넌트
+        function RestaurantGame() {
+            const [gameStage, setGameStage] = useState('welcome'); 
+            // welcome, order, recipe, cooking, serving, payment, result
+            
+            const [level, setLevel] = useState(1);
+            const [currentAnimal, setCurrentAnimal] = useState(null);
+            const [currentRecipe, setCurrentRecipe] = useState(null);
+            const [currentOrders, setCurrentOrders] = useState([]); // 요리사에서 2개 주문
+            const [completedOrders, setCompletedOrders] = useState([]); // 완성한 요리 목록
+            const [currentOrderIndex, setCurrentOrderIndex] = useState(0); // 현재 만들고 있는 요리 인덱스
+            const [cookingPot, setCookingPot] = useState([]); // 조리 도구에 담긴 재료
+            const [customerPayment, setCustomerPayment] = useState(0); // 손님이 낸 돈
+            const [selectedChange, setSelectedChange] = useState([]); // 선택한 거스름돈
+            const [showFeedback, setShowFeedback] = useState(false);
+            const [feedbackMessage, setFeedbackMessage] = useState('');
+            const [score, setScore] = useState(1000); // 시작 금액 1000원
+            const [failedDish, setFailedDish] = useState(null); // 실패한 요리 정보
+            
+            // 게임 데이터 로드 (페이지 로드 시)
+            useEffect(() => {
+                const savedData = localStorage.getItem('restaurantGameState');
+                if (savedData) {
+                    try {
+                        const data = JSON.parse(savedData);
+                        // welcome 화면이 아닌 경우에만 복원
+                        if (data.gameStage && data.gameStage !== 'welcome') {
+                            setGameStage(data.gameStage);
+                            setLevel(data.level || 1);
+                            setScore(data.score || 1000);
+                            setCurrentAnimal(data.currentAnimal || null);
+                            setCurrentRecipe(data.currentRecipe || null);
+                            setCurrentOrders(data.currentOrders || []);
+                            setCompletedOrders(data.completedOrders || []);
+                            setCurrentOrderIndex(data.currentOrderIndex || 0);
+                            setCookingPot(data.cookingPot || []);
+                            setCustomerPayment(data.customerPayment || 0);
+                            setSelectedChange(data.selectedChange || []);
+                            setFailedDish(data.failedDish || null);
+                            console.log('게임 데이터 불러오기 완료!', data);
+                        }
+                    } catch (error) {
+                        console.error('저장 데이터 불러오기 실패:', error);
+                    }
+                }
+            }, []);
+            
+            // 게임 데이터 자동 저장 (상태 변경 시)
+            useEffect(() => {
+                if (gameStage !== 'welcome') {
+                    const saveData = {
+                        gameStage,
+                        level,
+                        score,
+                        currentAnimal,
+                        currentRecipe,
+                        currentOrders,
+                        completedOrders,
+                        currentOrderIndex,
+                        cookingPot,
+                        customerPayment,
+                        selectedChange,
+                        failedDish,
+                        savedAt: new Date().toISOString()
+                    };
+                    localStorage.setItem('restaurantGameState', JSON.stringify(saveData));
+                }
+            }, [gameStage, level, score, currentAnimal, currentRecipe, currentOrders, completedOrders, currentOrderIndex, cookingPot, customerPayment, selectedChange, failedDish]);
+            
+            // 게임 시작
+            const startGame = (startLevel = 1) => {
+                setLevel(startLevel);
+                generateOrder();
+                setGameStage('order');
+                // 시작 금액 설정
+                if (startLevel === 4) {
+                    setScore(50000); // 전문경영인은 50,000원부터
+                } else if (startLevel === 3) {
+                    setScore(10000); // 전문요리사는 10,000원부터
+                } else if (startLevel === 2) {
+                    setScore(3000); // 요리사는 3,000원부터
+                } else {
+                    setScore(1000); // 수습요리사는 1,000원부터
+                }
+            };
+            
+// [수정됨] 주문 생성 (Level 4는 모든 요리 등장)
+            const generateOrder = () => {
+                // 친구가 올 확률 30%, 동물이 올 확률 70%
+                const isFriendVisitor = Math.random() < 0.3; 
+                
+                let randomCustomer;
+                
+                if (isFriendVisitor) {
+                    // --- 친구 손님 (자유 요리) ---
+                    const friends = GAME_DATA.animals.filter(a => a.type === 'friend');
+                    randomCustomer = friends[Math.floor(Math.random() * friends.length)];
+                    
+                    const specialRecipe = GAME_DATA.recipes.freestyle;
+                    
+                    setCurrentAnimal(randomCustomer);
+                    setCurrentRecipe(specialRecipe);
+                    setCurrentOrders([specialRecipe]);
+                    
+                } else {
+                    // --- 동물 손님 (일반 요리) ---
+                    const animals = GAME_DATA.animals.filter(a => a.type !== 'friend');
+                    randomCustomer = animals[Math.floor(Math.random() * animals.length)];
+                    
+                    if (level === 1) {
+                        // Level 1: 1단계 요리 1개
+                        const level1Recipes = Object.values(GAME_DATA.recipes).filter(r => r.level === 1 && !r.isFreestyle);
+                        const randomRecipe = level1Recipes[Math.floor(Math.random() * level1Recipes.length)];
+                        setCurrentAnimal(randomCustomer);
+                        setCurrentRecipe(randomRecipe);
+                        setCurrentOrders([randomRecipe]);
+
+                    } else if (level === 2) {
+                        // Level 2: 2단계 요리 2개
+                        const level2Recipes = Object.values(GAME_DATA.recipes).filter(r => r.level === 2 && !r.isFreestyle);
+                        const recipe1 = level2Recipes[Math.floor(Math.random() * level2Recipes.length)];
+                        let recipe2 = level2Recipes[Math.floor(Math.random() * level2Recipes.length)];
+                        
+                        // 중복 방지 (가능하다면)
+                        if (level2Recipes.length > 1) {
+                            while (recipe2.id === recipe1.id) {
+                                recipe2 = level2Recipes[Math.floor(Math.random() * level2Recipes.length)];
+                            }
+                        }
+                        
+                        setCurrentAnimal(randomCustomer);
+                        setCurrentRecipe(recipe1);
+                        setCurrentOrders([recipe1, recipe2]);
+
+                    } else {
+                        // Level 3 이상 (3개 주문)
+                        
+                        // 설기(코기)는 무조건 스페셜 요리
+                        if (randomCustomer.special === 'jion') {
+                            const specialRecipe = GAME_DATA.recipes.jionSpecial;
+                            setCurrentAnimal(randomCustomer);
+                            setCurrentRecipe(specialRecipe);
+                            setCurrentOrders([specialRecipe]);
+                        } else {
+                            let availableRecipes;
+
+                            if (level === 3) {
+                                // Level 3: 3단계 요리만 나옴 (어려움)
+                                availableRecipes = Object.values(GAME_DATA.recipes).filter(r => r.level === 3 && !r.isFreestyle && !r.special);
+                            } else {
+                                // 🔥 Level 4 (전문경영인): 1, 2, 3단계 모든 요리가 섞여서 나옴!
+                                availableRecipes = Object.values(GAME_DATA.recipes).filter(r => !r.isFreestyle && !r.special);
+                            }
+
+                            const recipe1 = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+                            let recipe2 = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+                            let recipe3 = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+                            
+                            // 중복 방지 로직
+                            if (availableRecipes.length > 2) {
+                                while (recipe2.id === recipe1.id) {
+                                    recipe2 = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+                                }
+                                while (recipe3.id === recipe1.id || recipe3.id === recipe2.id) {
+                                    recipe3 = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+                                }
+                            }
+                            
+                            setCurrentAnimal(randomCustomer);
+                            setCurrentRecipe(recipe1);
+                            setCurrentOrders([recipe1, recipe2, recipe3]);
+                        }
+                    }
+                }
+
+                // 공통 초기화
+                setCompletedOrders([]);
+                setCurrentOrderIndex(0);
+                setCookingPot([]);
+                setCustomerPayment(0);
+                setSelectedChange([]);
+                setFailedDish(null);
+            };
+            
+            // 레시피 확인하기
+            const viewRecipe = () => {
+                setGameStage('recipe');
+            };
+            
+            // 조리 시작
+            const startCooking = () => {
+                setGameStage('cooking');
+            };
+            
+            // 재료 추가
+            const addIngredient = (ingredientId) => {
+                SoundSystem.playPop(); // 똑! 소리
+                const newPot = [...cookingPot, ingredientId];
+                setCookingPot(newPot);
+            };
+            
+            // 재료 제거
+            const removeIngredient = (index) => {
+                const newPot = cookingPot.filter((_, i) => i !== index);
+                setCookingPot(newPot);
+            };
+            
+// 요리하기 버튼 클릭
+            const startCookingDish = () => {
+                // 1. 냄비가 비었는지 확인
+                if (cookingPot.length === 0) {
+                    showFeedbackMsg('🤔 재료를 먼저 넣어주세요!', false);
+                    return;
+                }
+
+                // 2. 친구를 위한 '자유 요리'인지 확인
+                if (currentRecipe && currentRecipe.isFreestyle) {
+                    // --- 자유 요리 성공 로직 ---
+                    SoundSystem.playSuccess();
+                    
+                    // (1) 가격 계산: 기본 500원 + 재료 하나당 300원
+                    const customPrice = 500 + (cookingPot.length * 300);
+                    
+                    // (2) 이름 짓기: 재료 이름을 조합
+                    const ingredientNames = cookingPot.map(id => GAME_DATA.ingredients[id].name);
+                    const uniqueNames = [...new Set(ingredientNames)];
+                    
+                    let customName = "";
+                    if (uniqueNames.length === 1) {
+                        customName = `가득찬 ${uniqueNames[0]} 요리`;
+                    } else if (uniqueNames.length === 2) {
+                        customName = `${uniqueNames[0]}와 ${uniqueNames[1]}의 만남`;
+                    } else {
+                        customName = `${uniqueNames[0]} 듬뿍 스페셜 요리`;
+                    }
+
+                    // (3) 완성된 요리 정보 업데이트
+                    const finishedDish = {
+                        ...currentRecipe,
+                        name: customName,
+                        price: customPrice,
+                        emoji: '🍲', 
+                        description: `지온이가 ${currentAnimal.name}를 위해 만든 요리!`
+                    };
+                    
+                    // 주문 목록 업데이트
+                    const newOrders = [...currentOrders];
+                    newOrders[currentOrderIndex] = finishedDish;
+                    setCurrentOrders(newOrders);
+                    setCurrentRecipe(finishedDish); 
+
+                    // (4) 성공 처리
+                    const newCompleted = [...completedOrders, finishedDish];
+                    setCompletedOrders(newCompleted);
+
+                    setTimeout(() => {
+                        setGameStage('serving');
+                    }, 1000);
+                    
+                    return; // 자유 요리는 여기서 종료
+                }
+
+                // --- 기존 일반 요리 로직 (동물 손님용) ---
+                const recipeSorted = [...currentRecipe.ingredients].sort();
+                const potSorted = [...cookingPot].sort();
+                const isCorrect = JSON.stringify(recipeSorted) === JSON.stringify(potSorted);
+
+                if (isCorrect) {
+                    SoundSystem.playSuccess();
+                    setFailedDish(null);
+                    
+                    const newCompleted = [...completedOrders, currentRecipe];
+                    setCompletedOrders(newCompleted);
+                    
+                    const nextIndex = currentOrderIndex + 1;
+                    if (nextIndex < currentOrders.length) {
+                        setTimeout(() => {
+                            setCurrentOrderIndex(nextIndex);
+                            setCurrentRecipe(currentOrders[nextIndex]);
+                            setCookingPot([]);
+                            setGameStage('cooking');
+                            showFeedbackMsg(`🎉 ${currentRecipe.name} 완성! 다음 요리 고고!`, true);
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                            setGameStage('serving');
+                        }, 1000);
+                    }
+                } else {
+                    // 실패 로직
+                    SoundSystem.playFail();
+                    const weirdDishName = generateWeirdDishName(cookingPot);
+                    setFailedDish({
+                        name: weirdDishName,
+                        ingredients: cookingPot
+                    });
+                    
+                    const ingredientCost = cookingPot.length * 100;
+                    setScore(Math.max(0, score - ingredientCost));
+                    
+                    setTimeout(() => {
+                        setGameStage('failed');
+                    }, 1000);
+                }
+            };                    
+
+            // 이상한 요리 이름 생성
+            const generateWeirdDishName = (ingredients) => {
+                const names = ingredients.map(id => GAME_DATA.ingredients[id].name);
+                const templates = [
+                    `${names[0]}${names[1] || ''}맛 ${names[2] || names[0]}?`,
+                    `느끼한 ${names[0]}${names[1] || ''} 쥬스`,
+                    `${names[0]} ${names[1] || ''}튀김??`,
+                    `이상한 ${names[0]}${names[1] || ''} 스프`,
+                    `${names[0]}${names[1] || ''}${names[2] || ''}볶음???`,
+                    `${names[0]} 넣은 ${names[1] || names[0]}`,
+                    `탄 ${names[0]}${names[1] || ''} 요리`,
+                    `${names[0]}랑 ${names[1] || names[0]} 섞은 거??`,
+                ];
+                return templates[Math.floor(Math.random() * templates.length)];
+            };
+            
+            // 서빙 완료 후 계산
+            const finishServing = () => {
+                // 손님이 내는 돈 생성 (요리 가격보다 많이)
+                const totalPrice = currentOrders.reduce((sum, recipe) => sum + recipe.price, 0);
+                
+                // 특별 손님 체크 (곤충 손님과 펭귄은 돈을 더 많이 냄)
+                const isSpecialGuest = ['beetle', 'wasp', 'penguin'].includes(currentAnimal.id);
+                
+                let possiblePayments;
+                if (isSpecialGuest) {
+                    // 특별 손님: 천원 단위로 더 많이 지불 (1000원 지폐 거스름돈 가능)
+                    possiblePayments = [
+                        totalPrice + 1000,
+                        totalPrice + 1100,
+                        totalPrice + 1200,
+                        totalPrice + 1500,
+                        totalPrice + 2000,
+                        Math.ceil((totalPrice + 1000) / 1000) * 1000, // 천원 단위로 올림
+                    ];
+                } else {
+                    // 일반 손님: 백원 단위 거스름돈
+                    possiblePayments = [
+                        totalPrice + 100,
+                        totalPrice + 200,
+                        totalPrice + 300,
+                        totalPrice + 500,
+                        Math.ceil(totalPrice / 1000) * 1000, // 천원 단위로 올림
+                    ];
+                }
+                
+                const payment = possiblePayments[Math.floor(Math.random() * possiblePayments.length)];
+                
+                setCustomerPayment(payment);
+                setGameStage('payment');
+            };
+            
+            // 거스름돈 선택
+            const selectChangeMoney = (money) => {
+                SoundSystem.playCoin(); // 동전 소리
+                const newChange = [...selectedChange, money];
+                setSelectedChange(newChange);
+            };
+            
+            // 거스름돈 제거
+            const removeChangeMoney = (index) => {
+                const newChange = selectedChange.filter((_, i) => i !== index);
+                setSelectedChange(newChange);
+            };
+            
+            // [변경됨] 돈 내기 확인 (빼기 대신 가격 맞추기)
+            const checkChange = () => {
+                const totalMoney = selectedChange.reduce((sum, money) => sum + money.value, 0);
+                // 2개 이상 주문 시 총 가격 계산
+                const totalPrice = currentOrders.reduce((sum, recipe) => sum + recipe.price, 0);
+                
+                // 목표: 거스름돈이 아니라 '음식 가격' 그 자체를 맞춰야 함
+                const correctAmount = totalPrice;
+                
+                if (totalMoney === correctAmount) {
+                    // 성공!
+                    SoundSystem.playSuccess(); // 성공 소리
+                    const newScore = score + totalPrice; // 수익 추가
+                    setScore(newScore);
+                    
+                    // 레벨업 체크
+                    if (newScore >= 50000 && level === 3) {
+                        SoundSystem.playLevelUp();
+                        setGameStage('levelup');
+                    } else if (newScore >= 10000 && level === 2) {
+                        SoundSystem.playLevelUp();
+                        setGameStage('levelup');
+                    } else if (newScore >= 3000 && level === 1) {
+                        SoundSystem.playLevelUp();
+                        setGameStage('levelup');
+                    } else {
+                        setGameStage('result');
+                    }
+                } else if (totalMoney < correctAmount) {
+                    showFeedbackMsg(`💰 돈이 ${correctAmount - totalMoney}원 부족해요! 더 올려주세요!`, false);
+                } else {
+                    showFeedbackMsg(`💰 돈이 ${totalMoney - correctAmount}원 넘었어요! 조금 덜어내세요!`, false);
+                }
+            };
+            
+            // 피드백 메시지
+            const showFeedbackMsg = (message, isSuccess) => {
+                setFeedbackMessage(message);
+                setShowFeedback(true);
+                setTimeout(() => setShowFeedback(false), 2500);
+            };
+            
+            // 다음 라운드
+            const nextRound = () => {
+                generateOrder();
+                setGameStage('order');
+            };
+            
+            // 수동 저장
+            const handleSave = () => {
+                SoundSystem.playPop();
+                const gameState = {
+                    level,
+                    score,
+                    gameStage,
+                    currentAnimal,
+                    currentRecipe,
+                    currentOrders,
+                    completedOrders,
+                    currentOrderIndex,
+                    cookingPot,
+                    customerPayment,
+                    selectedChange,
+                    failedDish
+                };
+                localStorage.setItem('restaurantGameState', JSON.stringify(gameState));
+                showFeedbackMsg('💾 게임이 저장되었어요!', true);
+            };
+            
+            // 게임 초기화
+            const handleReset = () => {
+                if (window.confirm('🔄 정말로 게임을 초기화하시겠어요?\n모든 진행 상황이 사라집니다!')) {
+                    SoundSystem.playPop();
+                    localStorage.removeItem('restaurantGameState');
+                    setGameStage('welcome');
+                    setLevel(1);
+                    setScore(1000);
+                    setCurrentAnimal(null);
+                    setCurrentRecipe(null);
+                    setCurrentOrders([]);
+                    setCompletedOrders([]);
+                    setCurrentOrderIndex(0);
+                    setCookingPot([]);
+                    setCustomerPayment(0);
+                    setSelectedChange([]);
+                    setFailedDish(null);
+                    showFeedbackMsg('🔄 게임이 초기화되었어요!', true);
+                }
+            };
+            
+            return (
+                <div className="min-h-screen p-4 md:p-8">
+                    <Header level={level} score={score} onSave={handleSave} onReset={handleReset} />
+                    
+                    <AnimatePresence>
+                        {showFeedback && (
+                            <FeedbackMessage message={feedbackMessage} />
+                        )}
+                    </AnimatePresence>
+                    
+                    <div className="max-w-6xl mx-auto">
+                        {gameStage === 'welcome' && <WelcomeScreen onStart={startGame} />}
+                        {gameStage === 'order' && (
+                            <OrderScreen 
+                                animal={currentAnimal}
+                                recipe={currentRecipe}
+                                orders={currentOrders}
+                                level={level}
+                                onViewRecipe={viewRecipe}
+                            />
+                        )}
+                        {gameStage === 'recipe' && (
+                            <RecipeScreen 
+                                recipe={currentRecipe}
+                                orders={currentOrders}
+                                level={level}
+                                onStartCooking={startCooking}
+                            />
+                        )}
+                        {gameStage === 'cooking' && (
+                            <CookingScreen
+                                recipe={currentRecipe}
+                                orders={currentOrders}
+                                completedOrders={completedOrders}
+                                currentOrderIndex={currentOrderIndex}
+                                cookingPot={cookingPot}
+                                level={level}
+                                onAddIngredient={addIngredient}
+                                onRemoveIngredient={removeIngredient}
+                                onStartCooking={startCookingDish}
+                            />
+                        )}
+                        {gameStage === 'failed' && (
+                            <FailedScreen
+                                failedDish={failedDish}
+                                ingredientCost={cookingPot.length * 100}
+                                onRetry={() => {
+                                    setCookingPot([]); // 재료 초기화
+                                    setGameStage('cooking');
+                                }}
+                            />
+                        )}
+                        {gameStage === 'serving' && (
+                            <ServingScreen
+                                animal={currentAnimal}
+                                recipe={currentRecipe}
+                                onFinish={finishServing}
+                            />
+                        )}
+                        {gameStage === 'payment' && (
+                            <PaymentScreen
+                                recipe={currentRecipe}
+                                orders={currentOrders}
+                                customerPayment={customerPayment}
+                                selectedChange={selectedChange}
+                                onSelectMoney={selectChangeMoney}
+                                onRemoveMoney={removeChangeMoney}
+                                onCheckChange={checkChange}
+                            />
+                        )}
+                        {gameStage === 'levelup' && (
+                            <LevelUpScreen
+                                currentLevel={level}
+                                newLevel={level + 1}
+                                onContinue={() => {
+                                    setLevel(level + 1);
+                                    setGameStage('result');
+                                }}
+                            />
+                        )}
+                        {gameStage === 'result' && (
+                            <ResultScreen
+                                animal={currentAnimal}
+                                recipe={currentRecipe}
+                                orders={currentOrders}
+                                score={score}
+                                onNextRound={nextRound}
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // 헤더
+        function Header({ level, score, onSave, onReset }) {
+            const levelNames = {
+                1: '수습 요리사',
+                2: '요리사',
+                3: '전문 요리사',
+                4: '전문 경영인'
+            };
+            
+            return (
+                <motion.div 
+                    initial={{ y: -50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    className="text-center mb-8"
+                >
+                    <h1 className="text-4xl md:text-6xl font-bold text-pink-600 mb-2">
+                        🍳 꼬마 요리사의 맛있는 레스토랑
+                    </h1>
+                    <div className="flex justify-center items-center gap-4 flex-wrap">
+                        <div className="inline-block bg-white px-6 py-3 rounded-full cute-shadow">
+                            <span className="text-2xl md:text-3xl font-bold text-purple-600">
+                                ⭐ {levelNames[level]}
+                            </span>
+                        </div>
+                        <div className="inline-block bg-white px-6 py-3 rounded-full cute-shadow">
+                            <span className="text-2xl md:text-3xl font-bold text-green-600">
+                                💰 {score}원
+                            </span>
+                        </div>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onSave}
+                            className="bg-blue-500 text-white px-5 py-3 rounded-full cute-shadow text-xl font-bold hover:bg-blue-600 transition-colors"
+                            title="게임 저장하기"
+                        >
+                            💾 저장
+                        </motion.button>
+                        <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={onReset}
+                            className="bg-red-500 text-white px-5 py-3 rounded-full cute-shadow text-xl font-bold hover:bg-red-600 transition-colors"
+                            title="게임 초기화하기"
+                        >
+                            🔄 초기화
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // 환영 화면
+        function WelcomeScreen({ onStart }) {
+            return (
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center py-12"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-2xl mx-auto">
+                        <div className="text-8xl mb-6 animate-bounce-gentle">🧑‍🍳</div>
+                        <h2 className="text-3xl md:text-5xl font-bold text-gray-800 mb-4">
+                            맛있는 레스토랑에 오신 걸<br/>환영해요!
+                        </h2>
+                        <p className="text-xl md:text-2xl text-gray-600 mb-8">
+                            귀여운 동물 손님들에게<br/>
+                            맛있는 요리를 만들어 주세요! 🍽️✨<br/>
+                            <br/>
+                            그리고 거스름돈도 정확하게 계산해야 해요! 💰
+                        </p>
+                        
+                        <div className="space-y-4">
+                            <button
+                                onClick={() => { SoundSystem.playPop(); onStart(1); }}
+                                className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full hover:scale-105 transition-transform cute-shadow"
+                            >
+                                ⭐ 수습요리사로 시작하기
+                            </button>
+                            <button
+                                onClick={() => { SoundSystem.playPop(); onStart(2); }}
+                                className="w-full bg-gradient-to-r from-purple-400 to-pink-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full hover:scale-105 transition-transform cute-shadow"
+                            >
+                                👑 요리사로 시작하기
+                            </button>
+                            <button
+                                onClick={() => { SoundSystem.playPop(); onStart(3); }}
+                                className="w-full bg-gradient-to-r from-orange-400 to-red-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full hover:scale-105 transition-transform cute-shadow"
+                            >
+                                🌟 전문요리사로 시작하기
+                            </button>
+                        </div>
+                        
+                        <div className="mt-8 bg-yellow-50 rounded-2xl p-6">
+                            <div className="text-xl font-bold text-gray-700 mb-4">💡 레벨 안내</div>
+                            <div className="space-y-3 text-left text-lg text-gray-600">
+                                <div className="flex gap-3">
+                                    <div className="font-bold text-green-600">⭐ 수습요리사:</div>
+                                    <div>1개 주문, 기본 재료</div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="font-bold text-purple-600">👑 요리사:</div>
+                                    <div>2개 주문, 더 많은 재료</div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="font-bold text-orange-600">🌟 전문요리사:</div>
+                                    <div>3개 주문, 곤충 손님, 최고급 요리!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+// [수정됨] 주문 화면 (자유 요리일 때 재료 안 보여주기)
+        function OrderScreen({ animal, recipe, orders, level, onViewRecipe }) {
+            if (!animal || !recipe) return null;
+            
+            // 주문 목록 결정 (2개 이상 주문이면 orders 사용, 아니면 recipe 하나를 배열로)
+            const displayOrders = (orders && orders.length > 0) ? orders : [recipe];
+            const totalPrice = displayOrders.reduce((sum, r) => sum + r.price, 0);
+            
+            return (
+                <motion.div
+                    initial={{ x: -100, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    className="py-8"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-3xl mx-auto">
+                        {/* 레벨 뱃지 */}
+                        {level >= 2 && (
+                            <div className="text-center mb-4">
+                                <span className={`inline-block px-6 py-2 rounded-full font-bold text-xl text-white ${
+                                    level === 2 ? 'bg-purple-500' : 
+                                    level === 3 ? 'bg-orange-500' : 'bg-blue-500'
+                                }`}>
+                                    {level === 2 ? '⭐ 요리사' : level === 3 ? '🌟 전문요리사' : '💎 전문경영인'}
+                                </span>
+                            </div>
+                        )}
+                        
+                        {/* 동물 캐릭터 */}
+                        <motion.div
+                            animate={{ rotate: [0, -5, 5, -5, 0] }}
+                            transition={{ duration: 0.5, repeat: 2 }}
+                            className="text-9xl text-center mb-6"
+                        >
+                            {animal.emoji}
+                        </motion.div>
+                        
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                                {animal.name} 손님이 오셨어요! 🎉
+                            </h2>
+                            {animal.type === 'friend' && (
+                                <p className="text-xl text-gray-500 font-bold">{animal.desc}</p>
+                            )}
+                        </div>
+                        
+                        {/* 말풍선 */}
+                        <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.5, type: "spring" }}
+                            className="bg-yellow-100 border-4 border-yellow-300 rounded-2xl p-6 relative mb-8"
+                        >
+                            <div className="text-2xl md:text-3xl text-center text-gray-700 mb-4">
+                                {displayOrders.length > 1 
+                                    ? `"${displayOrders.length}개 주문할게요!"` 
+                                    : `"${displayOrders[0].name} 주세요!"`}
+                            </div>
+
+                            <div className="flex flex-wrap justify-center gap-6 mb-4">
+                                {displayOrders.map((order, i) => (
+                                    <div key={i} className="text-center">
+                                        <div className="text-6xl mb-2">{order.emoji}</div>
+                                        <div className="text-xl font-bold">{order.name}</div>
+                                        {/* 자유 요리는 가격이 0원이므로 가격 표시 생략 혹은 '?' 표시 */}
+                                        <div className="text-lg text-green-600">
+                                            {order.isFreestyle ? '가격은 비밀!' : `${order.price}원`}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {/* 말풍선 꼬리 */}
+                            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[20px] border-r-[20px] border-b-[20px] border-transparent border-b-yellow-300"></div>
+                        </motion.div>
+                        
+                        {/* 총 가격 표시 (자유 요리는 제외) */}
+                        {!recipe.isFreestyle && (
+                            <div className="bg-green-50 border-4 border-green-300 rounded-2xl p-6 mb-8">
+                                <div className="flex items-center justify-center gap-3">
+                                    <span className="text-3xl">💰</span>
+                                    <span className="text-2xl md:text-3xl font-bold text-green-700">
+                                        총 가격: {totalPrice}원
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onViewRecipe}
+                            className="w-full bg-gradient-to-r from-orange-400 to-pink-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow"
+                        >
+                            {recipe.isFreestyle ? '🎁 요리하러 가기!' : '📖 레시피 확인하기!'}
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+// [수정됨] 레시피 화면 (친구 요리일 때 도구 찾기 에러 해결)
+        function RecipeScreen({ recipe, orders, level, onStartCooking }) {
+            if (!recipe) return null;
+            
+            const [showRecipe, setShowRecipe] = useState(false);
+            const isMultipleOrders = orders && orders.length > 1;
+            
+            // 주문 목록 (없으면 현재 레시피 1개)
+            const currentOrderList = isMultipleOrders ? orders : [recipe];
+            
+            // 🔥 [중요 Fix] 친구 요리(자유 요리)라면, 복잡한 로직 없이 바로 "요리 시작" 화면을 보여줍니다.
+            // 여기서 도구(tool)를 찾지 않으므로 에러가 나지 않습니다.
+            if (recipe.isFreestyle) {
+                return (
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="py-8"
+                    >
+                        <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-3xl mx-auto text-center">
+                            <h2 className="text-3xl md:text-4xl font-bold text-purple-600 mb-6">
+                                🎁 친구를 위한 특별 요리!
+                            </h2>
+                            <div className="text-9xl mb-8 animate-bounce-gentle">🧑‍🍳</div>
+                            <p className="text-2xl text-gray-600 mb-8 leading-relaxed">
+                                정해진 레시피가 없어요!<br/>
+                                친구가 좋아하는 재료를<br/>
+                                <strong>마음대로</strong> 넣어보세요!<br/>
+                            </p>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={onStartCooking}
+                                className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow"
+                            >
+                                🍳 요리 시작하기!
+                            </motion.button>
+                        </div>
+                    </motion.div>
+                );
+            }
+
+            // --- 아래는 일반 동물 손님을 위한 로직입니다 ---
+            
+            // 일반 요리일 때만 도구를 가져옵니다. (에러 방지용 안전장치 || 추가)
+            const tool = COOKING_TOOLS[recipe.cookingTool] || COOKING_TOOLS['pot'];
+
+            // recipe가 변경될 때마다 레시피 공개 상태 초기화
+            useEffect(() => {
+                setShowRecipe(false);
+            }, [recipe.id]);
+
+            return (
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-8"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-3xl mx-auto">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+                            {isMultipleOrders ? "📖 오늘의 주문서" : `📖 ${recipe.name} 레시피`}
+                        </h2>
+
+                        {/* 요리 아이콘 보여주기 */}
+                        <div className="flex justify-center gap-6 mb-8">
+                            {currentOrderList.map((order, i) => (
+                                <div key={i} className="text-center">
+                                    <div className="text-6xl md:text-8xl mb-2">{order.emoji}</div>
+                                    {isMultipleOrders && <div className="text-xl font-bold">{order.name}</div>}
+                                </div>
+                            ))}
+                        </div>
+                        
+                        {!showRecipe ? (
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setShowRecipe(true)}
+                                className="bg-gradient-to-br from-purple-200 to-pink-200 border-4 border-purple-300 rounded-2xl p-12 mb-6 cursor-pointer text-center"
+                            >
+                                <div className="text-6xl mb-4">🔒</div>
+                                <div className="text-2xl md:text-3xl font-bold text-purple-700 mb-2">
+                                    레시피를 확인하려면 클릭!
+                                </div>
+                                <div className="text-lg text-purple-600">
+                                    재료를 기억해보세요! 🧠
+                                </div>
+                            </motion.div>
+                        ) : (
+                            <div className="space-y-6 mb-8">
+                                {currentOrderList.map((order, orderIndex) => {
+                                    // 여기서도 안전하게 도구를 가져옵니다
+                                    const orderTool = COOKING_TOOLS[order.cookingTool] || COOKING_TOOLS['pot'];
+                                    return (
+                                        <motion.div
+                                            key={orderIndex}
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: orderIndex * 0.2 }}
+                                            className="bg-blue-50 border-4 border-blue-200 rounded-2xl p-6"
+                                        >
+                                            <h3 className="text-xl font-bold text-center text-blue-700 mb-4">
+                                                {isMultipleOrders ? `${order.name} 재료` : "🥘 필요한 재료"}
+                                            </h3>
+                                            <div className="flex flex-wrap justify-center gap-3 mb-4">
+                                                {order.ingredients.map((ingredientId, idx) => {
+                                                    const ingredient = GAME_DATA.ingredients[ingredientId];
+                                                    return (
+                                                        <div key={idx} className="bg-white rounded-xl p-3 cute-shadow">
+                                                            <div className="text-4xl text-center mb-1">{ingredient.emoji}</div>
+                                                            <div className="text-sm font-bold text-center">{ingredient.name}</div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <div className={`${orderTool.color} rounded-xl p-3 text-center mx-auto w-fit`}>
+                                                <span className="text-2xl mr-2">{orderTool.emoji}</span>
+                                                <span className="font-bold">{orderTool.name}</span>에 넣으세요!
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onStartCooking}
+                            className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow"
+                        >
+                            👨‍🍳 요리 시작하기!
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+
+// [수정됨] 조리 화면 (자유 요리 지원)
+        function CookingScreen({ recipe, orders, completedOrders, currentOrderIndex, cookingPot, level, onAddIngredient, onRemoveIngredient, onStartCooking }) {
+            if (!recipe) return null;
+            
+            const [showRecipe, setShowRecipe] = useState(false);
+            
+            // 안전장치: 조리 도구가 없으면(자유요리) 'pot'으로 처리
+            const toolKey = recipe.cookingTool === 'any' ? 'pot' : recipe.cookingTool;
+            const tool = COOKING_TOOLS[toolKey] || COOKING_TOOLS['pot'];
+            
+            const isMultipleOrders = orders && orders.length > 1;
+            
+            // 필요한 재료 계산 (자유 요리는 빈 객체)
+            const neededIngredients = recipe.isFreestyle ? {} : recipe.ingredients.reduce((acc, id) => {
+                acc[id] = (acc[id] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const currentIngredients = cookingPot.reduce((acc, id) => {
+                acc[id] = (acc[id] || 0) + 1;
+                return acc;
+            }, {});
+            
+            useEffect(() => {
+                setShowRecipe(false);
+            }, [recipe.id]);
+            
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* 왼쪽: 재료 선택 */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white rounded-3xl p-6 md:p-8 cute-shadow">
+                            <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+                                🥬 재료 창고
+                            </h2>
+                            
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+                                {Object.values(GAME_DATA.ingredients).filter(ing => ing.level <= (level === 1 ? 1 : level)).map((ingredient) => (
+                                    <motion.button
+                                        key={ingredient.id}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => onAddIngredient(ingredient.id)}
+                                        className="clickable bg-gradient-to-br from-yellow-100 to-orange-100 rounded-2xl p-4 md:p-6 cute-shadow hover:shadow-2xl transition-all"
+                                    >
+                                        <div className="text-4xl md:text-5xl mb-2">{ingredient.emoji}</div>
+                                        <div className="text-sm md:text-base font-bold text-gray-800">{ingredient.name}</div>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* 오른쪽: 조리 도구 */}
+                    <div className="space-y-6">
+                        {/* 진행 상황 (요리사만) */}
+                        {isMultipleOrders && (
+                            <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl p-4 cute-shadow">
+                                <div className="text-center mb-3">
+                                    <span className="text-lg font-bold text-purple-700">
+                                        👑 요리 진행 상황
+                                    </span>
+                                </div>
+                                <div className="flex justify-center gap-3">
+                                    {orders.map((order, index) => (
+                                        <div key={index} className={`flex flex-col items-center p-3 rounded-xl ${
+                                            index < currentOrderIndex ? 'bg-green-200' :
+                                            index === currentOrderIndex ? 'bg-yellow-200 ring-4 ring-yellow-400' : 'bg-gray-200'
+                                        }`}>
+                                            <div className="text-3xl mb-1">{order.emoji}</div>
+                                            <div className="text-xs font-bold text-center">{order.name}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 레시피 요약 (자유 요리는 숨김) */}
+                        {!recipe.isFreestyle && (
+                            <div className="bg-white rounded-3xl p-6 cute-shadow">
+                                <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">📋 레시피</h3>
+                                <div className="space-y-2">
+                                    {Object.entries(neededIngredients).map(([id, count]) => {
+                                        const ingredient = GAME_DATA.ingredients[id];
+                                        const current = currentIngredients[id] || 0;
+                                        const isComplete = current === count;
+                                        return (
+                                            <div key={id} className={`flex items-center justify-between p-3 rounded-xl ${isComplete ? 'bg-green-50' : 'bg-gray-50'}`}>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-2xl">{ingredient.emoji}</span>
+                                                    <span className="font-bold">{ingredient.name}</span>
+                                                </div>
+                                                <span className={`text-xl font-bold ${isComplete ? 'text-green-600' : 'text-gray-600'}`}>
+                                                    {current} / {count}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* 조리 도구 */}
+                        <div className={`${tool.color} rounded-3xl p-6 cute-shadow border-4 border-opacity-50`}>
+                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                                {recipe.isFreestyle ? '✨ 마법의 냄비' : `${tool.emoji} ${tool.name}`}
+                            </h3>
+                            
+                            <div className="min-h-[200px] bg-white bg-opacity-50 rounded-2xl p-4 mb-4">
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    <AnimatePresence>
+                                        {cookingPot.length === 0 ? (
+                                            <div className="text-center text-gray-400 text-lg py-8 w-full">
+                                                {recipe.isFreestyle ? '좋아하는 재료를 넣어보세요!' : '재료를 넣어주세요!'}
+                                            </div>
+                                        ) : (
+                                            cookingPot.map((ingredientId, index) => {
+                                                const ingredient = GAME_DATA.ingredients[ingredientId];
+                                                return (
+                                                    <motion.button
+                                                        key={`${ingredientId}-${index}`}
+                                                        initial={{ scale: 0, rotate: -180 }}
+                                                        animate={{ scale: 1, rotate: 0 }}
+                                                        exit={{ scale: 0 }}
+                                                        onClick={() => onRemoveIngredient(index)}
+                                                        className="bg-white rounded-xl p-3 cute-shadow"
+                                                    >
+                                                        <div className="text-3xl">{ingredient.emoji}</div>
+                                                    </motion.button>
+                                                );
+                                            })
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                            
+                            <motion.button
+                                whileHover={{ scale: cookingPot.length > 0 ? 1.05 : 1 }}
+                                onClick={onStartCooking}
+                                className={`w-full py-4 rounded-2xl text-xl font-bold ${
+                                    cookingPot.length > 0 ? 'bg-gradient-to-r from-orange-400 to-red-400 text-white cute-shadow' : 'bg-gray-300 text-gray-500'
+                                }`}
+                            >
+                                {cookingPot.length > 0 ? '🔥 요리하기!' : '재료를 넣어주세요'}
+                            </motion.button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        // 실패 화면
+        function FailedScreen({ failedDish, ingredientCost, onRetry }) {
+            if (!failedDish) return null;
+            
+            return (
+                <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-12"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-2xl mx-auto text-center">
+                        <div className="text-8xl mb-6">😅</div>
+                        
+                        <h2 className="text-3xl md:text-4xl font-bold text-orange-600 mb-4">
+                            앗! 실패했어요!
+                        </h2>
+                        
+                        <motion.div
+                            animate={{ 
+                                scale: [1, 1.1, 1],
+                                rotate: [0, -5, 5, 0]
+                            }}
+                            transition={{ duration: 0.5, repeat: 3 }}
+                            className="text-8xl mb-6"
+                        >
+                            🤢
+                        </motion.div>
+                        
+                        <div className="bg-red-50 border-4 border-red-300 rounded-2xl p-6 mb-6">
+                            <div className="text-2xl md:text-3xl font-bold text-red-700 mb-4">
+                                {failedDish.name}
+                            </div>
+                            <div className="flex flex-wrap justify-center gap-3 mb-4">
+                                {failedDish.ingredients.map((id, index) => {
+                                    const ingredient = GAME_DATA.ingredients[id];
+                                    return (
+                                        <div key={index} className="text-4xl">{ingredient.emoji}</div>
+                                    );
+                                })}
+                            </div>
+                            <div className="text-lg text-red-600">
+                                이상한 조합이에요! 😵
+                            </div>
+                        </div>
+                        
+                        <div className="bg-yellow-50 border-4 border-yellow-300 rounded-2xl p-6 mb-8">
+                            <div className="text-xl font-bold text-gray-700 mb-2">재료비 차감</div>
+                            <div className="text-4xl font-bold text-red-600">-{ingredientCost}원 💸</div>
+                            <div className="text-sm text-gray-600 mt-2">
+                                (재료 {failedDish.ingredients.length}개 × 100원)
+                            </div>
+                        </div>
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onRetry}
+                            className="bg-gradient-to-r from-blue-400 to-purple-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full cute-shadow"
+                        >
+                            🔄 다시 도전하기!
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // [변경됨] 서빙 화면 (하트 뿅뿅 효과 추가!)
+        function ServingScreen({ animal, recipe, onFinish }) {
+            useEffect(() => {
+                // 냠냠 소리 재생
+                setTimeout(() => {
+                    SoundSystem.playEating();
+                }, 500);
+                
+                // 4초 후 다음 단계로
+                const timer = setTimeout(() => {
+                    onFinish();
+                }, 4000);
+                return () => clearTimeout(timer);
+            }, []);
+            
+            // 하트 애니메이션 설정
+            const heartVariants = {
+                initial: { y: 0, opacity: 0, scale: 0.5 },
+                animate: i => ({
+                    y: -100 - Math.random() * 50, // 위로 떠오름
+                    opacity: [0, 1, 0], // 나타났다 사라짐
+                    scale: [1, 1.5, 1], // 커졌다 작아짐
+                    transition: {
+                        delay: i * 0.3, // 순차적으로 나타남
+                        duration: 2,
+                        repeat: Infinity, // 반복
+                        repeatType: "loop"
+                    }
+                })
+            };
+
+            return (
+                <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-12"
+                >
+                    {/* relative와 overflow-hidden 추가하여 하트가 박스 안에서만 보이게 함 */}
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-2xl mx-auto text-center relative overflow-hidden">
+                        
+                        {/* ✨ 여기부터 하트 효과 추가 ✨ */}
+                        <div className="absolute inset-0 pointer-events-none">
+                            {[...Array(5)].map((_, i) => (
+                                <motion.div
+                                    key={i}
+                                    custom={i}
+                                    variants={heartVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    className="absolute text-5xl md:text-6xl"
+                                    style={{
+                                        // 하트 위치를 동물 주변으로 랜덤하게 배치
+                                        left: `${20 + Math.random() * 60}%`,
+                                        top: `${40 + Math.random() * 30}%`,
+                                        zIndex: 0 // 동물 뒤에 배치
+                                    }}
+                                >
+                                    {/* 랜덤한 하트 이모지 */}
+                                    {['💖', '💝', '🥰', '💗', '😍'][i % 5]}
+                                </motion.div>
+                            ))}
+                        </div>
+                        {/* ✨ 여기까지 하트 효과 추가 ✨ */}
+
+                        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 relative z-10">
+                            🍽️ 요리 완성!
+                        </h2>
+                        
+                        <motion.div
+                            animate={{ 
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 5, -5, 0]
+                            }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                            className="text-9xl mb-6 relative z-10"
+                        >
+                            {recipe.emoji}
+                        </motion.div>
+                        
+                        <div className="text-2xl md:text-3xl font-bold text-purple-600 mb-8 relative z-10">
+                            {recipe.name}
+                        </div>
+                        
+                        {/* 동물이 기뻐서 춤추는 동작을 좀 더 크게 변경 */}
+                        <motion.div
+                            animate={{ 
+                                rotate: [0, -15, 15, -15, 15, 0],
+                                scale: [1, 1.1, 1, 1.1, 1]
+                            }}
+                            transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 0.2 }}
+                            className="text-8xl mb-6 relative z-10"
+                        >
+                            {animal.emoji}
+                        </motion.div>
+                        
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="text-2xl md:text-3xl text-gray-700 relative z-10 font-bold"
+                        >
+                            "{animal.name}{getJosa(animal.name, '이/가')} 너무 행복해해요! 😍"
+                        </motion.div>
+                        
+                        <div className="mt-8 text-lg text-gray-500 relative z-10">
+                            잠시 후 계산 단계로 이동합니다...
+                        </div>
+                    </div>
+                </motion.div>
+            );
+        }
+
+// [변경됨] 계산 화면 (총액 숨기기 & 덧셈 수식 보여주기)
+        function PaymentScreen({ recipe, orders, customerPayment, selectedChange, onSelectMoney, onRemoveMoney, onCheckChange }) {
+            const isMultipleOrders = orders && orders.length > 0;
+            // 주문 목록이 없으면(1단계) 현재 레시피를 배열로 만듦
+            const currentOrderList = isMultipleOrders ? orders : [recipe];
+            
+            // 정답 (총 가격)
+            const totalPrice = currentOrderList.reduce((sum, r) => sum + r.price, 0);
+            
+            // 현재 아이가 올린 돈의 합계
+            const currentMoney = selectedChange.reduce((sum, money) => sum + money.value, 0);
+            
+            // 정답 체크 (가격과 올린 돈이 같아야 함)
+            const canSubmit = currentMoney === totalPrice;
+            
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* 왼쪽: 문제 화면 (수식) */}
+                    <div className="bg-white rounded-3xl p-6 md:p-8 cute-shadow border-4 border-blue-100">
+                        <h2 className="text-3xl md:text-4xl font-bold text-center text-blue-600 mb-8">
+                            🧮 얼마일까요?
+                        </h2>
+                        
+                        {/* 덧셈 수식 영역 */}
+                        <div className="flex flex-wrap justify-center items-center gap-2 md:gap-4 mb-8">
+                            {currentOrderList.map((item, index) => (
+                                <React.Fragment key={index}>
+                                    {/* 첫 번째 요리가 아니면 더하기 표시 추가 */}
+                                    {index > 0 && (
+                                        <div className="text-3xl md:text-4xl font-bold text-gray-400 animate-pulse">
+                                            +
+                                        </div>
+                                    )}
+
+                                    {/* 요리 카드 (이미지 + 이름 + 가격) */}
+                                    <div className="flex flex-col items-center bg-white border-2 border-gray-200 rounded-2xl p-3 shadow-sm">
+                                        <div className="text-5xl md:text-6xl mb-2">{item.emoji}</div>
+                                        <div className="text-sm font-bold text-gray-500 mb-1">{item.name}</div>
+                                        <div className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold text-lg md:text-xl">
+                                            {item.price}
+                                        </div>
+                                    </div>
+                                </React.Fragment>
+                            ))}
+
+                            {/* 등호(=) 표시 */}
+                            <div className="text-3xl md:text-4xl font-bold text-gray-400">
+                                =
+                            </div>
+
+                            {/* 정답 물음표 (돈을 맞추면 가격이 보임) */}
+                            <div className={`rounded-2xl p-4 border-4 transition-all duration-500 ${
+                                canSubmit 
+                                ? 'bg-green-100 border-green-400 scale-110' 
+                                : 'bg-gray-100 border-gray-300'
+                            }`}>
+                                <div className={`text-4xl md:text-5xl font-bold ${
+                                    canSubmit ? 'text-green-600' : 'text-gray-400'
+                                }`}>
+                                    {canSubmit ? `${totalPrice}` : '?'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 힌트 메시지 */}
+                        <div className="bg-yellow-50 rounded-xl p-4 text-center border-2 border-yellow-200">
+                            <p className="text-lg font-bold text-yellow-800">
+                                요리 가격을 모두 더해서<br/>
+                                <span className="text-blue-600 text-2xl">물음표(?)</span>를 맞춰보세요!
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {/* 오른쪽: 돈 내기 (기존 유지) */}
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-3xl p-6 cute-shadow">
+                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                                💴 지갑에서 돈 꺼내기
+                            </h3>
+                            
+                            {/* 돈 선택 버튼들 */}
+                            <div className="grid grid-cols-3 gap-4 mb-6">
+                                {GAME_DATA.money.map((money, index) => (
+                                    <motion.button
+                                        key={index}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={() => onSelectMoney(money)}
+                                        className="clickable bg-gradient-to-br from-green-100 to-green-200 border-b-4 border-green-300 rounded-2xl p-4 active:border-b-0 active:translate-y-1 transition-all"
+                                    >
+                                        <div className="text-4xl mb-2">{money.emoji}</div>
+                                        <div className="text-lg font-bold text-green-800">{money.value}원</div>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        {/* 내가 올린 돈 확인창 */}
+                        <div className="bg-white rounded-3xl p-6 cute-shadow">
+                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                                ✋ 내가 올린 돈
+                            </h3>
+                            
+                            <div className="min-h-[120px] bg-gray-50 rounded-2xl p-4 mb-4 border-2 border-dashed border-gray-300">
+                                <div className="flex flex-wrap gap-2 justify-center">
+                                    <AnimatePresence>
+                                        {selectedChange.length === 0 ? (
+                                            <div className="text-center text-gray-400 py-8 w-full flex flex-col items-center">
+                                                <span className="text-4xl mb-2">👆</span>
+                                                위에서 돈을 눌러주세요!
+                                            </div>
+                                        ) : (
+                                            selectedChange.map((money, index) => (
+                                                <motion.button
+                                                    key={`${money.value}-${index}`}
+                                                    initial={{ scale: 0, y: 20 }}
+                                                    animate={{ scale: 1, y: 0 }}
+                                                    exit={{ scale: 0 }}
+                                                    whileHover={{ scale: 1.1 }}
+                                                    onClick={() => onRemoveMoney(index)}
+                                                    className="bg-white border border-gray-200 rounded-xl p-2 shadow-sm cursor-pointer hover:bg-red-50"
+                                                >
+                                                    <div className="text-2xl">{money.emoji}</div>
+                                                    <div className="text-xs font-bold">{money.value}</div>
+                                                </motion.button>
+                                            ))
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                            
+                            {/* 합계 표시 (힌트) */}
+                            <div className={`rounded-xl p-4 mb-4 transition-colors duration-300 ${
+                                canSubmit ? 'bg-green-100' : 'bg-blue-50'
+                            }`}>
+                                <div className="flex justify-between items-center">
+                                    <span className="font-bold text-gray-600">지금 합계:</span>
+                                    <span className={`text-3xl font-bold ${
+                                        canSubmit ? 'text-green-600' : 
+                                        currentMoney > totalPrice ? 'text-red-500' : 'text-blue-600'
+                                    }`}>
+                                        {currentMoney}원
+                                    </span>
+                                </div>
+                                {!canSubmit && currentMoney > totalPrice && (
+                                    <div className="text-center text-red-500 text-sm font-bold mt-2 animate-bounce">
+                                        돈이 너무 많아요! 동전을 눌러서 빼주세요.
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <motion.button
+                                whileHover={{ scale: canSubmit ? 1.05 : 1 }}
+                                whileTap={{ scale: canSubmit ? 0.95 : 1 }}
+                                onClick={onCheckChange}
+                                disabled={!canSubmit}
+                                className={`w-full py-5 rounded-2xl text-xl font-bold transition-all ${
+                                    canSubmit
+                                        ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-lg cursor-pointer animate-pulse'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                }`}
+                            >
+                                {canSubmit ? '✅ 돈 내기!' : `가격을 맞춰주세요`}
+                            </motion.button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        // 레벨업 화면
+        function LevelUpScreen({ currentLevel, newLevel, onContinue }) {
+            const levelInfo = {
+                2: {
+                    icon: '👑',
+                    name: '요리사',
+                    color: 'text-purple-600',
+                    bgColor: 'from-purple-100 to-pink-100',
+                    requirement: '3,000원',
+                    features: [
+                        { emoji: '🍜', text: '새로운 요리 5종 추가!' },
+                        { emoji: '🥒', text: '새로운 재료 5종 추가!' },
+                        { emoji: '👥', text: '손님이 2개씩 주문해요!' },
+                        { emoji: '🔄', text: '2개 요리를 순서대로 만들어요!' },
+                        { emoji: '🧮', text: '계산이 더 복잡해져요!' }
+                    ]
+                },
+                3: {
+                    icon: '🌟',
+                    name: '전문요리사',
+                    color: 'text-orange-600',
+                    bgColor: 'from-orange-100 to-red-100',
+                    requirement: '10,000원',
+                    features: [
+                        { emoji: '🍝', text: '최고급 요리 6종 추가!' },
+                        { emoji: '🦐', text: '프리미엄 재료 6종 추가!' },
+                        { emoji: '🪲', text: '곤충 손님 3종 등장!' },
+                        { emoji: '👥👥👥', text: '손님이 3개씩 주문해요!' },
+                        { emoji: '🔄🔄🔄', text: '3개 요리를 순서대로 만들어요!' },
+                        { emoji: '🧮💰', text: '계산이 매우 복잡해져요!' }
+                    ]
+                },
+                4: {
+                    icon: '💎',
+                    name: '전문경영인',
+                    color: 'text-blue-600',
+                    bgColor: 'from-blue-100 to-cyan-100',
+                    requirement: '50,000원',
+                    features: [
+                        { emoji: '🏆', text: '레스토랑을 완전히 마스터했어요!' },
+                        { emoji: '💰', text: '엄청난 수익을 달성했어요!' },
+                        { emoji: '⭐', text: '최고의 요리사가 되셨어요!' },
+                        { emoji: '🎉', text: '축하합니다! 게임을 계속하세요!' }
+                    ]
+                }
+            };
+            
+            const info = levelInfo[newLevel];
+            
+            return (
+                <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-12"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-2xl mx-auto text-center">
+                        <motion.div
+                            animate={{ 
+                                rotate: [0, 360],
+                                scale: [1, 1.2, 1]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="text-9xl mb-6"
+                        >
+                            ⭐
+                        </motion.div>
+                        
+                        <h2 className="text-4xl md:text-6xl font-bold text-yellow-600 mb-4">
+                            승진합니다! 🎊
+                        </h2>
+                        
+                        <div className="text-8xl mb-6">{info.icon}</div>
+                        
+                        <p className="text-2xl md:text-3xl text-gray-700 mb-6">
+                            {info.requirement} 달성!<br/>
+                            <span className={`text-4xl font-bold ${info.color}`}>{info.name}</span>로 승진! 🚀
+                        </p>
+                        
+                        <div className={`bg-gradient-to-r ${info.bgColor} rounded-2xl p-6 mb-8`}>
+                            <div className="text-xl font-bold text-gray-700 mb-4">{info.icon} {info.name} 특징</div>
+                            <div className="space-y-2 text-left">
+                                {info.features.map((feature, index) => (
+                                    <div key={index} className="flex items-center gap-2">
+                                        <span className="text-2xl">{feature.emoji}</span>
+                                        <span className="text-lg">{feature.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onContinue}
+                            className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full cute-shadow"
+                        >
+                            🎮 {info.name}로 시작하기!
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // 결과 화면
+        function ResultScreen({ animal, recipe, orders, score, onNextRound }) {
+            const totalEarned = orders ? orders.reduce((sum, r) => sum + r.price, 0) : recipe.price;
+            
+            return (
+                <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-12"
+                >
+                    <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-2xl mx-auto text-center">
+                        <div className="text-8xl mb-6">🎉</div>
+                        
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                            완벽해요!
+                        </h2>
+                        
+                        <motion.div
+                            animate={{ 
+                                rotate: [0, -10, 10, -10, 10, 0],
+                                scale: [1, 1.1, 1]
+                            }}
+                            transition={{ duration: 1, repeat: Infinity, repeatDelay: 1 }}
+                            className="text-9xl mb-6"
+                        >
+                            {animal.emoji}
+                        </motion.div>
+                        
+                        <p className="text-2xl md:text-3xl text-gray-600 mb-6">
+                            {animal.name}{getJosa(animal.name, '이/가')} 정말 맛있게 먹었어요!<br/>
+                            거스름돈도 정확하게 계산했어요! 💯
+                        </p>
+                        
+                        {orders && orders.length > 1 && (
+                            <div className="bg-purple-50 border-4 border-purple-300 rounded-2xl p-4 mb-6">
+                                <div className="text-lg font-bold text-purple-700 mb-2">완성한 요리</div>
+                                <div className="flex justify-center gap-4">
+                                    {orders.map((order, i) => (
+                                        <div key={i} className="text-center">
+                                            <div className="text-4xl">{order.emoji}</div>
+                                            <div className="text-sm font-bold">{order.name}</div>
+                                            <div className="text-xs text-purple-600">{order.price}원</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="bg-gradient-to-r from-yellow-200 to-orange-200 rounded-2xl p-6 mb-8">
+                            <div className="text-xl font-bold text-gray-700 mb-2">이번에 번 돈</div>
+                            <div className="text-5xl font-bold text-orange-600">💰 {totalEarned}원</div>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-green-200 to-blue-200 rounded-2xl p-6 mb-8">
+                            <div className="text-xl font-bold text-gray-700 mb-2">총 수익</div>
+                            <div className="text-5xl font-bold text-green-600">💵 {score}원</div>
+                        </div>
+                        
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={onNextRound}
+                            className="bg-gradient-to-r from-purple-400 to-pink-400 text-white text-2xl md:text-3xl font-bold px-12 py-6 rounded-full cute-shadow"
+                        >
+                            🎮 다음 손님 맞이하기!
+                        </motion.button>
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // 피드백 메시지
+        function FeedbackMessage({ message }) {
+            return (
+                <motion.div
+                    initial={{ y: -100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -100, opacity: 0 }}
+                    className="fixed top-24 left-1/2 transform -translate-x-1/2 z-50"
+                >
+                    <div className="bg-orange-500 text-white text-xl md:text-2xl font-bold px-8 py-4 rounded-full cute-shadow">
+                        {message}
+                    </div>
+                </motion.div>
+            );
+        }
+
+        // 앱 렌더링
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<RestaurantGame />);
+    </script>
+</body>
+</html>
