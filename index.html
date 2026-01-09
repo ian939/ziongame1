@@ -1093,7 +1093,7 @@
             );
         }
 
-// [수정됨] 마트 화면 (아이패드 스크롤 버그 수정)
+// [수정됨] 마트 화면 (아이패드 터치 스크롤 개선)
         function MarketScreen({ stock, score, cart, setCart, onCheckout, onBack }) {
             const totalPrice = Object.entries(cart).reduce((sum, [_, qty]) => sum + (qty * 100), 0);
 
@@ -1114,22 +1114,29 @@
                 <motion.div 
                     initial={{ y: 50, opacity: 0 }} 
                     animate={{ y: 0, opacity: 1 }} 
-                    className="py-4 h-full"
+                    className="py-4 h-full flex flex-col"
                 >
-                    <div className="bg-white rounded-3xl p-6 md:p-8 cute-shadow max-w-4xl mx-auto flex flex-col h-full max-h-[90vh]">
+                    <div className="bg-white rounded-3xl p-6 md:p-8 cute-shadow max-w-4xl mx-auto w-full flex flex-col max-h-[90vh]">
                         {/* 1. 상단 헤더 (고정) */}
                         <div className="flex justify-between items-center mb-4 flex-none">
-                            <button onClick={onBack} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold">⬅ 뒤로가기</button>
+                            <button 
+                                onClick={onBack} 
+                                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold active:scale-95 transition-transform"
+                            >
+                                ⬅ 뒤로가기
+                            </button>
                             <h2 className="text-3xl font-bold text-green-700">🛒 싱싱 마트</h2>
                             <div className="text-2xl font-bold text-orange-600">내 돈: {score}원</div>
                         </div>
 
-                        {/* 2. 스크롤 영역 (여기가 중요!) */}
-                        {/* flex-1로 남은 공간을 다 차지하게 하고, overflow-y-auto로 스크롤 생성 */}
-                        {/* style={{ WebkitOverflowScrolling: 'touch' }} 가 아이패드 스크롤 핵심 */}
+                        {/* 2. 스크롤 영역 (높이 강제 고정 및 터치 활성화) */}
                         <div 
-                            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 overflow-y-auto custom-scrollbar flex-1 p-2"
-                            style={{ WebkitOverflowScrolling: 'touch' }}
+                            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 overflow-y-auto flex-1 p-2 touch-pan-y custom-scrollbar"
+                            style={{ 
+                                WebkitOverflowScrolling: 'touch', // 아이패드 부드러운 스크롤 필수
+                                height: '60vh', // 높이를 명확하게 고정 (매우 중요)
+                                minHeight: '300px' 
+                            }}
                         >
                             {Object.values(GAME_DATA.ingredients).map((ing) => (
                                 <div key={ing.id} className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 flex flex-col items-center shadow-sm">
@@ -1139,16 +1146,26 @@
                                     <div className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-lg text-sm font-bold mb-3">1개 100원</div>
                                     
                                     <div className="flex items-center gap-3">
-                                        <button onClick={() => updateCart(ing.id, -1)} className="w-10 h-10 bg-red-100 text-red-600 rounded-full font-bold text-xl active:scale-90 transition-transform">-</button>
+                                        <button 
+                                            onClick={() => updateCart(ing.id, -1)} 
+                                            className="w-10 h-10 bg-red-100 text-red-600 rounded-full font-bold text-xl active:bg-red-200 active:scale-90 transition-all touch-manipulation"
+                                        >
+                                            -
+                                        </button>
                                         <span className="text-xl font-bold w-6 text-center">{cart[ing.id] || 0}</span>
-                                        <button onClick={() => updateCart(ing.id, 1)} className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold text-xl active:scale-90 transition-transform">+</button>
+                                        <button 
+                                            onClick={() => updateCart(ing.id, 1)} 
+                                            className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full font-bold text-xl active:bg-blue-200 active:scale-90 transition-all touch-manipulation"
+                                        >
+                                            +
+                                        </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
                         {/* 3. 하단 계산 버튼 (고정) */}
-                        <div className="bg-green-50 border-4 border-green-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-4 flex-none">
+                        <div className="bg-green-50 border-4 border-green-200 rounded-2xl p-4 md:p-6 flex flex-col md:flex-row justify-between items-center gap-4 flex-none">
                             <div className="text-center md:text-left">
                                 <div className="text-gray-600 text-lg">장바구니 합계</div>
                                 <div className="text-4xl font-bold text-green-700">{totalPrice}원</div>
@@ -1160,7 +1177,7 @@
                                     onCheckout(totalPrice);
                                 }}
                                 disabled={totalPrice === 0}
-                                className={`px-8 py-4 rounded-xl text-2xl font-bold text-white shadow-lg w-full md:w-auto ${totalPrice > 0 ? 'bg-green-500 hover:bg-green-600 active:scale-95 transition-transform' : 'bg-gray-400'}`}
+                                className={`px-8 py-4 rounded-xl text-2xl font-bold text-white shadow-lg w-full md:w-auto transition-all active:scale-95 ${totalPrice > 0 ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-400'}`}
                             >
                                 ✅ 계산하러 가기
                             </button>
@@ -1169,7 +1186,6 @@
                 </motion.div>
             );
         }
-
         function ExpenseScreen({ amount, selectedChange, onSelectMoney, onRemoveMoney, onCheckExpense }) {
             const currentMoney = selectedChange.reduce((sum, money) => sum + money.value, 0);
             const canPay = currentMoney === amount;
