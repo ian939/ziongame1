@@ -16,20 +16,64 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
-    <style>
+<style>
+        /* 1. 기본 폰트 및 배경 설정 */
         body {
             font-family: 'Jua', sans-serif;
             background-color: #fdf6e3;
-            overflow-x: hidden;
+            overflow-x: hidden; /* 가로 스크롤 방지 */
+            -webkit-user-select: none; /* 텍스트 선택 방지 (앱처럼 느낌) */
+            user-select: none;
         }
+
+        /* 2. 터치 최적화 (아이패드 필수) */
+        * {
+            -webkit-tap-highlight-color: transparent; /* 터치 시 파란 박스 제거 */
+            box-sizing: border-box; /* 레이아웃 깨짐 방지 */
+        }
+
+        /* 3. 스크롤바 커스텀 (아이패드에서도 보이게 설정) */
+        .custom-scrollbar {
+            -webkit-overflow-scrolling: touch; /* 아이패드 관성 스크롤 활성화 (부드럽게) */
+            touch-action: pan-y; /* 수직 스크롤 허용 */
+        }
+
+        /* 스크롤바 막대 너비 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 12px; /* 아이들이 보기 편하게 조금 더 넓게 설정 */
+        }
+
+        /* 스크롤바 배경 */
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 6px;
+            margin: 10px 0; /* 위아래 여백 */
+        }
+
+        /* 스크롤바 손잡이 */
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 6px;
+            border: 3px solid #f1f1f1; /* 둥근 느낌을 위한 테두리 */
+        }
+
+        /* 스크롤바 손잡이 (터치/클릭 시) */
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+
+        /* 4. 귀여운 그림자 효과 */
         .cute-shadow {
             box-shadow: 0 4px 0 rgba(0,0,0,0.1), 0 8px 20px rgba(0,0,0,0.05);
             transition: all 0.2s ease;
         }
+
         .cute-shadow:active {
             box-shadow: 0 2px 0 rgba(0,0,0,0.1);
             transform: translateY(2px);
         }
+
+        /* 5. 통통 튀는 애니메이션 */
         @keyframes bounce-gentle {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -37,24 +81,11 @@
         .animate-bounce-gentle {
             animation: bounce-gentle 2s infinite;
         }
+
+        /* 6. 클릭 가능한 요소 커서 */
         .clickable {
             cursor: pointer;
             user-select: none;
-        }
-        /* 스크롤바 스타일링 */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
         }
     </style>
 </head>
