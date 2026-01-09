@@ -41,6 +41,21 @@
             cursor: pointer;
             user-select: none;
         }
+        /* 스크롤바 스타일링 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
     </style>
 </head>
 <body>
@@ -163,37 +178,32 @@
                 beef: { id: 'beef', name: '소고기', emoji: '🥩', category: 'protein', level: 3 },
                 garlic: { id: 'garlic', name: '마늘', emoji: '🧄', category: 'vegetable', level: 3 },
             },
-// 요리 메뉴
-    recipes: {
-        // [NEW] 토마토 주스 추가 & 딸기 주스 확인
-        strawberryJuice: { id: 'strawberryJuice', name: '딸기 주스', emoji: '🥤', price: 500, ingredients: ['strawberry', 'strawberry', 'milk'], cookingTool: 'bowl', description: '상큼하고 달콤한 리얼 딸기 주스', level: 1 },
-        tomatoJuice: { id: 'tomatoJuice', name: '토마토 주스', emoji: '🥤', price: 500, ingredients: ['tomato', 'tomato'], cookingTool: 'bowl', description: '건강하고 시원한 토마토 주스', level: 1 },
-
-        tomatoSoup: { id: 'tomatoSoup', name: '토마토 수프', emoji: '🍲', price: 500, ingredients: ['tomato', 'tomato', 'onion'], cookingTool: 'pot', description: '빨간 토마토로 만든 따뜻한 수프', level: 1 },
-        friedEgg: { id: 'friedEgg', name: '계란 후라이', emoji: '🍳', price: 300, ingredients: ['egg', 'egg'], cookingTool: 'pan', description: '노릇노릇 계란 후라이', level: 1 },
-        carrotSalad: { id: 'carrotSalad', name: '당근 샐러드', emoji: '🥗', price: 400, ingredients: ['carrot', 'carrot', 'tomato'], cookingTool: 'bowl', description: '신선한 채소 샐러드', level: 1 },
-        cheeseSandwich: { id: 'cheeseSandwich', name: '치즈 샌드위치', emoji: '🥪', price: 600, ingredients: ['bread', 'cheese', 'tomato'], cookingTool: 'pan', description: '고소한 치즈 샌드위치', level: 1 },
-        applePie: { id: 'applePie', name: '사과 파이', emoji: '🥧', price: 700, ingredients: ['apple', 'apple', 'apple'], cookingTool: 'pot', description: '달콤한 사과 파이', level: 1 },
-        
-        mushroomSoup: { id: 'mushroomSoup', name: '버섯 크림 수프', emoji: '🍄', price: 800, ingredients: ['mushroom', 'mushroom', 'milk', 'onion'], cookingTool: 'pot', description: '부드러운 버섯 크림 수프', level: 2 },
-        baconEggToast: { id: 'baconEggToast', name: '베이컨 에그 토스트', emoji: '🍞', price: 900, ingredients: ['bread', 'bacon', 'egg', 'cheese'], cookingTool: 'pan', description: '든든한 베이컨 에그 토스트', level: 2 },
-        friedRice: { id: 'friedRice', name: '볶음밥', emoji: '🍳', price: 700, ingredients: ['rice', 'egg', 'carrot', 'onion'], cookingTool: 'pan', description: '맛있는 볶음밥', level: 2 },
-        vegetableNoodle: { id: 'vegetableNoodle', name: '야채 라면', emoji: '🍜', price: 600, ingredients: ['noodle', 'cucumber', 'carrot', 'egg'], cookingTool: 'pot', description: '건강한 야채 라면', level: 2 },
-        potatoSalad: { id: 'potatoSalad', name: '감자 샐러드', emoji: '🥔', price: 500, ingredients: ['potato', 'egg', 'cucumber', 'carrot'], cookingTool: 'bowl', description: '고소한 감자 샐러드', level: 2 },
-        chickenSalad: { id: 'chickenSalad', name: '치킨 샐러드', emoji: '🥗', price: 800, ingredients: ['chicken', 'lettuce', 'tomato', 'cucumber'], cookingTool: 'bowl', description: '건강하고 든든한 닭가슴살 샐러드', level: 2 },
-        chocolateCake: { id: 'chocolateCake', name: '초코 케이크', emoji: '🎂', price: 900, ingredients: ['bread', 'chocolate', 'egg', 'milk'], cookingTool: 'pan', description: '달콤한 초콜릿이 가득한 케이크', level: 2 },
-        
-        seafoodPasta: { id: 'seafoodPasta', name: '해산물 파스타', emoji: '🍝', price: 1200, ingredients: ['noodle', 'shrimp', 'fish', 'tomato', 'onion'], cookingTool: 'pan', description: '풍성한 해산물 파스타', level: 3 },
-        grilledFish: { id: 'grilledFish', name: '생선 구이', emoji: '🐟', price: 1000, ingredients: ['fish', 'fish', 'pepper', 'broccoli'], cookingTool: 'pan', description: '신선한 생선 구이', level: 3 },
-        cornSoup: { id: 'cornSoup', name: '옥수수 크림 수프', emoji: '🌽', price: 900, ingredients: ['corn', 'corn', 'milk', 'potato'], cookingTool: 'pot', description: '달콤한 옥수수 수프', level: 3 },
-        pumpkinRisotto: { id: 'pumpkinRisotto', name: '호박 리조또', emoji: '🎃', price: 1100, ingredients: ['rice', 'pumpkin', 'cheese', 'mushroom', 'onion'], cookingTool: 'pot', description: '부드러운 호박 리조또', level: 3 },
-        shrimpSalad: { id: 'shrimpSalad', name: '새우 샐러드', emoji: '🦐', price: 800, ingredients: ['shrimp', 'broccoli', 'corn', 'tomato'], cookingTool: 'bowl', description: '신선한 새우 샐러드', level: 3 },
-        vegetableStew: { id: 'vegetableStew', name: '야채 스튜', emoji: '🥘', price: 1000, ingredients: ['potato', 'carrot', 'broccoli', 'pumpkin', 'onion'], cookingTool: 'pot', description: '푸짐한 야채 스튜', level: 3 },
-        garlicSteak: { id: 'garlicSteak', name: '마늘 스테이크', emoji: '🥩', price: 1500, ingredients: ['beef', 'garlic', 'mushroom', 'pepper', 'onion'], cookingTool: 'pan', description: '마늘 향이 가득한 최고급 소고기 스테이크', level: 3 },
-        hamburger: { id: 'hamburger', name: '치즈 햄버거', emoji: '🍔', price: 1300, ingredients: ['bread', 'beef', 'cheese', 'lettuce', 'tomato'], cookingTool: 'pan', description: '패티와 야채가 듬뿍 들어간 수제 버거', level: 3 },
-        jionSpecial: { id: 'jionSpecial', name: '지온이의 스페셜 요리', emoji: '🌟', price: 2000, ingredients: ['shrimp', 'fish', 'bacon', 'cheese', 'broccoli', 'corn', 'mushroom', 'tomato'], cookingTool: 'pan', description: '최고급 재료로 만든 특별한 요리', level: 3, special: true },
-        freestyle: { id: 'freestyle', name: '친구를 위한 특별 요리', emoji: '🎁', price: 0, ingredients: [], cookingTool: 'any', description: '친구가 좋아하는 재료를 듬뿍 넣어주세요!', level: 1, isFreestyle: true }
-    }, // recipes 끝
+            recipes: {
+                strawberryJuice: { id: 'strawberryJuice', name: '딸기 주스', emoji: '🥤', price: 500, ingredients: ['strawberry', 'strawberry', 'milk'], cookingTool: 'bowl', description: '상큼하고 달콤한 리얼 딸기 주스', level: 1 },
+                tomatoJuice: { id: 'tomatoJuice', name: '토마토 주스', emoji: '🥤', price: 500, ingredients: ['tomato', 'tomato'], cookingTool: 'bowl', description: '건강하고 시원한 토마토 주스', level: 1 },
+                tomatoSoup: { id: 'tomatoSoup', name: '토마토 수프', emoji: '🍲', price: 500, ingredients: ['tomato', 'tomato', 'onion'], cookingTool: 'pot', description: '빨간 토마토로 만든 따뜻한 수프', level: 1 },
+                friedEgg: { id: 'friedEgg', name: '계란 후라이', emoji: '🍳', price: 300, ingredients: ['egg', 'egg'], cookingTool: 'pan', description: '노릇노릇 계란 후라이', level: 1 },
+                carrotSalad: { id: 'carrotSalad', name: '당근 샐러드', emoji: '🥗', price: 400, ingredients: ['carrot', 'carrot', 'tomato'], cookingTool: 'bowl', description: '신선한 채소 샐러드', level: 1 },
+                cheeseSandwich: { id: 'cheeseSandwich', name: '치즈 샌드위치', emoji: '🥪', price: 600, ingredients: ['bread', 'cheese', 'tomato'], cookingTool: 'pan', description: '고소한 치즈 샌드위치', level: 1 },
+                applePie: { id: 'applePie', name: '사과 파이', emoji: '🥧', price: 700, ingredients: ['apple', 'apple', 'apple'], cookingTool: 'pot', description: '달콤한 사과 파이', level: 1 },
+                mushroomSoup: { id: 'mushroomSoup', name: '버섯 크림 수프', emoji: '🍄', price: 800, ingredients: ['mushroom', 'mushroom', 'milk', 'onion'], cookingTool: 'pot', description: '부드러운 버섯 크림 수프', level: 2 },
+                baconEggToast: { id: 'baconEggToast', name: '베이컨 에그 토스트', emoji: '🍞', price: 900, ingredients: ['bread', 'bacon', 'egg', 'cheese'], cookingTool: 'pan', description: '든든한 베이컨 에그 토스트', level: 2 },
+                friedRice: { id: 'friedRice', name: '볶음밥', emoji: '🍳', price: 700, ingredients: ['rice', 'egg', 'carrot', 'onion'], cookingTool: 'pan', description: '맛있는 볶음밥', level: 2 },
+                vegetableNoodle: { id: 'vegetableNoodle', name: '야채 라면', emoji: '🍜', price: 600, ingredients: ['noodle', 'cucumber', 'carrot', 'egg'], cookingTool: 'pot', description: '건강한 야채 라면', level: 2 },
+                potatoSalad: { id: 'potatoSalad', name: '감자 샐러드', emoji: '🥔', price: 500, ingredients: ['potato', 'egg', 'cucumber', 'carrot'], cookingTool: 'bowl', description: '고소한 감자 샐러드', level: 2 },
+                chickenSalad: { id: 'chickenSalad', name: '치킨 샐러드', emoji: '🥗', price: 800, ingredients: ['chicken', 'lettuce', 'tomato', 'cucumber'], cookingTool: 'bowl', description: '건강하고 든든한 닭가슴살 샐러드', level: 2 },
+                chocolateCake: { id: 'chocolateCake', name: '초코 케이크', emoji: '🎂', price: 900, ingredients: ['bread', 'chocolate', 'egg', 'milk'], cookingTool: 'pan', description: '달콤한 초콜릿이 가득한 케이크', level: 2 },
+                seafoodPasta: { id: 'seafoodPasta', name: '해산물 파스타', emoji: '🍝', price: 1200, ingredients: ['noodle', 'shrimp', 'fish', 'tomato', 'onion'], cookingTool: 'pan', description: '풍성한 해산물 파스타', level: 3 },
+                grilledFish: { id: 'grilledFish', name: '생선 구이', emoji: '🐟', price: 1000, ingredients: ['fish', 'fish', 'pepper', 'broccoli'], cookingTool: 'pan', description: '신선한 생선 구이', level: 3 },
+                cornSoup: { id: 'cornSoup', name: '옥수수 크림 수프', emoji: '🌽', price: 900, ingredients: ['corn', 'corn', 'milk', 'potato'], cookingTool: 'pot', description: '달콤한 옥수수 수프', level: 3 },
+                pumpkinRisotto: { id: 'pumpkinRisotto', name: '호박 리조또', emoji: '🎃', price: 1100, ingredients: ['rice', 'pumpkin', 'cheese', 'mushroom', 'onion'], cookingTool: 'pot', description: '부드러운 호박 리조또', level: 3 },
+                shrimpSalad: { id: 'shrimpSalad', name: '새우 샐러드', emoji: '🦐', price: 800, ingredients: ['shrimp', 'broccoli', 'corn', 'tomato'], cookingTool: 'bowl', description: '신선한 새우 샐러드', level: 3 },
+                vegetableStew: { id: 'vegetableStew', name: '야채 스튜', emoji: '🥘', price: 1000, ingredients: ['potato', 'carrot', 'broccoli', 'pumpkin', 'onion'], cookingTool: 'pot', description: '푸짐한 야채 스튜', level: 3 },
+                garlicSteak: { id: 'garlicSteak', name: '마늘 스테이크', emoji: '🥩', price: 1500, ingredients: ['beef', 'garlic', 'mushroom', 'pepper', 'onion'], cookingTool: 'pan', description: '마늘 향이 가득한 최고급 소고기 스테이크', level: 3 },
+                hamburger: { id: 'hamburger', name: '치즈 햄버거', emoji: '🍔', price: 1300, ingredients: ['bread', 'beef', 'cheese', 'lettuce', 'tomato'], cookingTool: 'pan', description: '패티와 야채가 듬뿍 들어간 수제 버거', level: 3 },
+                jionSpecial: { id: 'jionSpecial', name: '지온이의 스페셜 요리', emoji: '🌟', price: 2000, ingredients: ['shrimp', 'fish', 'bacon', 'cheese', 'broccoli', 'corn', 'mushroom', 'tomato'], cookingTool: 'pan', description: '최고급 재료로 만든 특별한 요리', level: 3, special: true },
+                freestyle: { id: 'freestyle', name: '친구를 위한 특별 요리', emoji: '🎁', price: 0, ingredients: [], cookingTool: 'any', description: '친구가 좋아하는 재료를 듬뿍 넣어주세요!', level: 1, isFreestyle: true }
+            },
             animals: [
                 { id: 'dog', emoji: '🐶', name: '강아지', color: '#FFD700' },
                 { id: 'cat', emoji: '🐱', name: '고양이', color: '#FFB6C1' },
@@ -583,105 +593,199 @@
             );
         }
 
+// [수정됨] 레시피 화면 (요리 그림 보고 재료 유추하기)
         function RecipeScreen({ recipe, orders, level, onStartCooking }) {
             if (!recipe) return null;
+            
             const [showRecipe, setShowRecipe] = useState(false);
             const isMultipleOrders = orders && orders.length > 1;
+            
+            // 주문 목록 (없으면 현재 레시피 1개)
             const currentOrderList = isMultipleOrders ? orders : [recipe];
             
+            // 자유 요리(친구) 예외 처리
             if (recipe.isFreestyle) {
                 return (
-                    <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-8">
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="py-8"
+                    >
                         <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-3xl mx-auto text-center">
-                            <h2 className="text-3xl md:text-4xl font-bold text-purple-600 mb-6">🎁 친구를 위한 특별 요리!</h2>
+                            <h2 className="text-3xl md:text-4xl font-bold text-purple-600 mb-6">
+                                🎁 친구를 위한 특별 요리!
+                            </h2>
                             <div className="text-9xl mb-8 animate-bounce-gentle">🧑‍🍳</div>
-                            <p className="text-2xl text-gray-600 mb-8 leading-relaxed">정해진 레시피가 없어요!<br/>친구가 좋아하는 재료를<br/><strong>마음대로</strong> 넣어보세요!</p>
-                            <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onStartCooking} className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow">🍳 요리 시작하기!</motion.button>
+                            <p className="text-2xl text-gray-600 mb-8 leading-relaxed">
+                                정해진 레시피가 없어요!<br/>
+                                친구가 좋아하는 재료를<br/>
+                                <strong>마음대로</strong> 넣어보세요!<br/>
+                            </p>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={onStartCooking}
+                                className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow"
+                            >
+                                🍳 요리 시작하기!
+                            </motion.button>
                         </div>
                     </motion.div>
                 );
             }
 
-            useEffect(() => { setShowRecipe(false); }, [recipe.id]);
+            // recipe가 변경될 때마다 레시피를 다시 잠금 상태로 초기화
+            useEffect(() => {
+                setShowRecipe(false);
+            }, [recipe.id]);
 
             return (
-                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-8">
+                <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="py-8"
+                >
                     <div className="bg-white rounded-3xl p-8 md:p-12 cute-shadow max-w-3xl mx-auto">
-                        <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">{isMultipleOrders ? "📖 오늘의 주문서" : `📖 ${recipe.name} 레시피`}</h2>
-                        <div className="flex justify-center gap-6 mb-8">
-                            {currentOrderList.map((order, i) => (
-                                <div key={i} className="text-center"><div className="text-6xl md:text-8xl mb-2">{order.emoji}</div>{isMultipleOrders && <div className="text-xl font-bold">{order.name}</div>}</div>
-                            ))}
-                        </div>
+                        <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
+                            {/* 상태에 따라 제목 변경 */}
+                            {!showRecipe ? "🤔 어떤 재료가 필요할까요?" : (isMultipleOrders ? "📖 오늘의 주문서" : `📖 ${recipe.name} 레시피`)}
+                        </h2>
+
+                        {/* showRecipe가 false면: 요리 그림 크게 보여주기 (퀴즈 모드) */}
                         {!showRecipe ? (
-                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => setShowRecipe(true)} className="bg-gradient-to-br from-purple-200 to-pink-200 border-4 border-purple-300 rounded-2xl p-12 mb-6 cursor-pointer text-center">
-                                <div className="text-6xl mb-4">🔒</div>
-                                <div className="text-2xl md:text-3xl font-bold text-purple-700 mb-2">레시피를 확인하려면 클릭!</div>
-                                <div className="text-lg text-purple-600">재료를 기억해보세요! 🧠</div>
+                            <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setShowRecipe(true)}
+                                className="bg-gradient-to-br from-yellow-50 to-orange-50 border-4 border-orange-200 rounded-2xl p-8 cursor-pointer text-center relative overflow-hidden"
+                            >
+                                <div className="absolute top-2 right-2 text-3xl animate-pulse">👆</div>
+                                
+                                {/* 요리 이미지들 */}
+                                <div className="flex justify-center gap-6 mb-6 flex-wrap">
+                                    {currentOrderList.map((order, i) => (
+                                        <div key={i} className="text-center">
+                                            <div className="text-7xl md:text-9xl mb-3 filter drop-shadow-md">{order.emoji}</div>
+                                            <div className="text-2xl md:text-3xl font-bold text-gray-800">{order.name}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="bg-white bg-opacity-60 rounded-xl p-4 inline-block">
+                                    <div className="text-xl md:text-2xl font-bold text-orange-600 mb-1">
+                                        어떤 재료가 들어갈까요?
+                                    </div>
+                                    <div className="text-base md:text-lg text-gray-500">
+                                        (여기를 눌러서 정답 확인!)
+                                    </div>
+                                </div>
                             </motion.div>
                         ) : (
+                            /* showRecipe가 true면: 재료 목록 보여주기 (정답 공개) */
                             <div className="space-y-6 mb-8">
+                                {/* 상단에 요리 아이콘 작게 표시 */}
+                                <div className="flex justify-center gap-4 mb-4">
+                                    {currentOrderList.map((order, i) => (
+                                        <div key={i} className="text-center opacity-50">
+                                            <div className="text-4xl">{order.emoji}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
                                 {currentOrderList.map((order, orderIndex) => {
+                                    // 안전하게 도구 가져오기
                                     const orderTool = COOKING_TOOLS[order.cookingTool] || COOKING_TOOLS['pot'];
                                     return (
-                                        <motion.div key={orderIndex} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: orderIndex * 0.2 }} className="bg-blue-50 border-4 border-blue-200 rounded-2xl p-6">
-                                            <h3 className="text-xl font-bold text-center text-blue-700 mb-4">{isMultipleOrders ? `${order.name} 재료` : "🥘 필요한 재료"}</h3>
+                                        <motion.div
+                                            key={orderIndex}
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: orderIndex * 0.2 }}
+                                            className="bg-blue-50 border-4 border-blue-200 rounded-2xl p-6"
+                                        >
+                                            <h3 className="text-xl font-bold text-center text-blue-700 mb-4">
+                                                {isMultipleOrders ? `${order.name} 재료` : "🥘 필요한 재료"}
+                                            </h3>
                                             <div className="flex flex-wrap justify-center gap-3 mb-4">
                                                 {order.ingredients.map((ingredientId, idx) => {
                                                     const ingredient = GAME_DATA.ingredients[ingredientId];
-                                                    return (<div key={idx} className="bg-white rounded-xl p-3 cute-shadow"><div className="text-4xl text-center mb-1">{ingredient.emoji}</div><div className="text-sm font-bold text-center">{ingredient.name}</div></div>);
+                                                    return (
+                                                        <div key={idx} className="bg-white rounded-xl p-3 cute-shadow">
+                                                            <div className="text-4xl text-center mb-1">{ingredient.emoji}</div>
+                                                            <div className="text-sm font-bold text-center">{ingredient.name}</div>
+                                                        </div>
+                                                    );
                                                 })}
                                             </div>
-                                            <div className={`${orderTool.color} rounded-xl p-3 text-center mx-auto w-fit`}><span className="text-2xl mr-2">{orderTool.emoji}</span><span className="font-bold">{orderTool.name}</span>에 넣으세요!</div>
+                                            <div className={`${orderTool.color} rounded-xl p-3 text-center mx-auto w-fit`}>
+                                                <span className="text-2xl mr-2">{orderTool.emoji}</span>
+                                                <span className="font-bold">{orderTool.name}</span>에 넣으세요!
+                                            </div>
                                         </motion.div>
                                     );
                                 })}
                             </div>
                         )}
-                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onStartCooking} className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow">👨‍🍳 요리 시작하기!</motion.button>
+                        
+                        {/* 레시피가 공개되었을 때만 요리 시작 버튼 보임 */}
+                        {showRecipe && (
+                            <motion.button
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={onStartCooking}
+                                className="w-full bg-gradient-to-r from-green-400 to-blue-400 text-white text-2xl md:text-3xl font-bold py-6 rounded-full cute-shadow mt-4"
+                            >
+                                👨‍🍳 요리 시작하기!
+                            </motion.button>
+                        )}
                     </div>
                 </motion.div>
             );
         }
 
-// [수정됨] 조리 화면 (카테고리별 재료 구분 + 스크롤 적용)
+
+// [수정됨] 조리 화면 (냉장고 헤더 고정 해제 + 레시피 힌트에 요리 정보 표시)
         function CookingScreen({ recipe, orders, completedOrders, currentOrderIndex, cookingPot, level, stock, onAddIngredient, onRemoveIngredient, onStartCooking }) {
             if (!recipe) return null;
             
-            const [showRecipe, setShowRecipe] = useState(false);
+            // 레시피 힌트를 보여줄지 여부 (기본값: false = 안 보여줌)
+            const [showRecipeHint, setShowRecipeHint] = useState(false);
+            
             const toolKey = recipe.cookingTool === 'any' ? 'pot' : recipe.cookingTool;
             const tool = COOKING_TOOLS[toolKey] || COOKING_TOOLS['pot'];
             const isMultipleOrders = orders && orders.length > 1;
             const neededIngredients = recipe.isFreestyle ? {} : recipe.ingredients.reduce((acc, id) => { acc[id] = (acc[id] || 0) + 1; return acc; }, {});
             const currentIngredients = cookingPot.reduce((acc, id) => { acc[id] = (acc[id] || 0) + 1; return acc; }, {});
             
-            useEffect(() => { setShowRecipe(false); }, [recipe.id]);
+            // 요리가 바뀔 때마다 힌트를 다시 가림
+            useEffect(() => { setShowRecipeHint(false); }, [recipe.id]);
 
             // 카테고리 정의
             const categories = [
                 { label: '🥦 채소', types: ['vegetable'], color: 'bg-green-50 border-2 border-green-100' },
                 { label: '🍎 과일', types: ['fruit'], color: 'bg-red-50 border-2 border-red-100' },
                 { label: '🍖 고기/계란', types: ['protein'], color: 'bg-orange-50 border-2 border-orange-100' },
-                { label: '🥛 기타 (빵/유제품 등)', types: ['dairy', 'grain', 'sweets'], color: 'bg-blue-50 border-2 border-blue-100' },
+                { label: '🥛 기타', types: ['dairy', 'grain', 'sweets'], color: 'bg-blue-50 border-2 border-blue-100' },
             ];
 
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                    {/* 왼쪽: 재료 선택 (카테고리별 분류) */}
+                    {/* 왼쪽: 재료 선택 (카테고리별 분류 + 스크롤) */}
                     <div className="lg:col-span-2">
+                        {/* h-[600px] overflow-y-auto는 유지하되, 헤더의 sticky 속성을 제거했습니다 */}
                         <div className="bg-white rounded-3xl p-6 md:p-8 cute-shadow h-[600px] overflow-y-auto custom-scrollbar">
-                            <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6 sticky top-0 bg-white py-2 z-10">
+                            <h2 className="text-3xl md:text-4xl font-bold text-center text-purple-600 mb-6">
                                 🥬 냉장고 (재료 창고)
                             </h2>
                             
                             {categories.map((cat) => {
-                                // 현재 레벨에서 사용 가능한 해당 카테고리의 재료들 필터링
                                 const catIngredients = Object.values(GAME_DATA.ingredients).filter(ing => 
                                     ing.level <= (level === 1 ? 1 : level) && 
                                     cat.types.includes(ing.category)
                                 );
 
-                                // 해당 카테고리에 재료가 없으면 렌더링 안 함
                                 if (catIngredients.length === 0) return null;
 
                                 return (
@@ -705,8 +809,6 @@
                                                     >
                                                         <div className="text-4xl mb-1">{ingredient.emoji}</div>
                                                         <div className="text-sm font-bold text-gray-800">{ingredient.name}</div>
-                                                        
-                                                        {/* 재고 개수 표시 */}
                                                         <div className={`absolute -top-2 -right-2 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs border-2 ${
                                                             isEmpty ? 'bg-gray-400 border-gray-500 text-white' : 
                                                             isLow ? 'bg-red-500 border-red-600 text-white animate-pulse' : 
@@ -724,7 +826,7 @@
                         </div>
                     </div>
 
-                    {/* 오른쪽: 조리 도구 (기존 유지) */}
+                    {/* 오른쪽: 조리 도구 및 정보 */}
                     <div className="space-y-6">
                         {isMultipleOrders && (
                             <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl p-4 cute-shadow">
@@ -738,41 +840,99 @@
                                 </div>
                             </div>
                         )}
+
+                        {/* [변경됨] 레시피 힌트 부분 */}
                         {!recipe.isFreestyle && (
                             <div className="bg-white rounded-3xl p-6 cute-shadow">
                                 <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">📋 레시피</h3>
-                                <div className="space-y-2">
-                                    {Object.entries(neededIngredients).map(([id, count]) => {
-                                        const ingredient = GAME_DATA.ingredients[id];
-                                        const current = currentIngredients[id] || 0;
-                                        const isComplete = current === count;
-                                        return (
-                                            <div key={id} className={`flex items-center justify-between p-3 rounded-xl ${isComplete ? 'bg-green-50' : 'bg-gray-50'}`}>
-                                                <div className="flex items-center gap-2"><span className="text-2xl">{ingredient.emoji}</span><span className="font-bold">{ingredient.name}</span></div>
-                                                <span className={`text-xl font-bold ${isComplete ? 'text-green-600' : 'text-gray-600'}`}>{current} / {count}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                
+                                {!showRecipeHint ? (
+                                    // [변경] 가려진 상태: 자물쇠 대신 요리 그림과 이름을 보여줌
+                                    <motion.button 
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => setShowRecipeHint(true)}
+                                        className="w-full bg-gray-50 border-4 border-gray-200 rounded-2xl p-4 text-center group hover:bg-yellow-50 hover:border-yellow-200 transition-colors"
+                                    >
+                                        <div className="text-gray-500 text-sm mb-2 font-bold">만들어야 할 요리</div>
+                                        <div className="text-6xl mb-2 group-hover:scale-110 transition-transform">{recipe.emoji}</div>
+                                        <div className="text-xl font-bold text-gray-800 mb-2">{recipe.name}</div>
+                                        <div className="text-xs text-blue-500 bg-blue-100 inline-block px-3 py-1 rounded-full animate-pulse">
+                                            재료 보기 (클릭!)
+                                        </div>
+                                    </motion.button>
+                                ) : (
+                                    // 보여지는 상태 (재료 목록)
+                                    <div className="space-y-2">
+                                        {Object.entries(neededIngredients).map(([id, count]) => {
+                                            const ingredient = GAME_DATA.ingredients[id];
+                                            const current = currentIngredients[id] || 0;
+                                            const isComplete = current === count;
+                                            return (
+                                                <div key={id} className={`flex items-center justify-between p-3 rounded-xl ${isComplete ? 'bg-green-50' : 'bg-gray-50'}`}>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-2xl">{ingredient.emoji}</span>
+                                                        <span className="font-bold">{ingredient.name}</span>
+                                                    </div>
+                                                    <span className={`text-xl font-bold ${isComplete ? 'text-green-600' : 'text-gray-600'}`}>
+                                                        {current} / {count}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                        {/* 다시 가리기 버튼 */}
+                                        <button 
+                                            onClick={() => setShowRecipeHint(false)}
+                                            className="text-xs text-gray-400 underline w-full text-center mt-2"
+                                        >
+                                            요리 그림 보기
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
+
                         <div className={`${tool.color} rounded-3xl p-6 cute-shadow border-4 border-opacity-50`}>
-                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">{recipe.isFreestyle ? '✨ 마법의 냄비' : `${tool.emoji} ${tool.name}`}</h3>
+                            <h3 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                                {recipe.isFreestyle ? '✨ 마법의 냄비' : `${tool.emoji} ${tool.name}`}
+                            </h3>
                             <div className="min-h-[200px] bg-white bg-opacity-50 rounded-2xl p-4 mb-4">
                                 <div className="flex flex-wrap gap-2 justify-center">
                                     <AnimatePresence>
-                                        {cookingPot.length === 0 ? <div className="text-center text-gray-400 text-lg py-8 w-full">{recipe.isFreestyle ? '좋아하는 재료를 넣어보세요!' : '재료를 넣어주세요!'}</div> : cookingPot.map((ingredientId, index) => (
-                                            <motion.button key={`${ingredientId}-${index}`} initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} onClick={() => onRemoveIngredient(index)} className="bg-white rounded-xl p-3 cute-shadow"><div className="text-3xl">{GAME_DATA.ingredients[ingredientId].emoji}</div></motion.button>
-                                        ))}
+                                        {cookingPot.length === 0 ? (
+                                            <div className="text-center text-gray-400 text-lg py-8 w-full">
+                                                {recipe.isFreestyle ? '좋아하는 재료를 넣어보세요!' : '재료를 넣어주세요!'}
+                                            </div>
+                                        ) : (
+                                            cookingPot.map((ingredientId, index) => (
+                                                <motion.button 
+                                                    key={`${ingredientId}-${index}`} 
+                                                    initial={{ scale: 0, rotate: -180 }} 
+                                                    animate={{ scale: 1, rotate: 0 }} 
+                                                    exit={{ scale: 0 }} 
+                                                    onClick={() => onRemoveIngredient(index)} 
+                                                    className="bg-white rounded-xl p-3 cute-shadow"
+                                                >
+                                                    <div className="text-3xl">{GAME_DATA.ingredients[ingredientId].emoji}</div>
+                                                </motion.button>
+                                            ))
+                                        )}
                                     </AnimatePresence>
                                 </div>
                             </div>
-                            <motion.button whileHover={{ scale: cookingPot.length > 0 ? 1.05 : 1 }} onClick={onStartCooking} className={`w-full py-4 rounded-2xl text-xl font-bold ${cookingPot.length > 0 ? 'bg-gradient-to-r from-orange-400 to-red-400 text-white cute-shadow' : 'bg-gray-300 text-gray-500'}`}>{cookingPot.length > 0 ? '🔥 요리하기!' : '재료를 넣어주세요'}</motion.button>
+                            <motion.button 
+                                whileHover={{ scale: cookingPot.length > 0 ? 1.05 : 1 }} 
+                                onClick={onStartCooking} 
+                                className={`w-full py-4 rounded-2xl text-xl font-bold ${cookingPot.length > 0 ? 'bg-gradient-to-r from-orange-400 to-red-400 text-white cute-shadow' : 'bg-gray-300 text-gray-500'}`}
+                            >
+                                {cookingPot.length > 0 ? '🔥 요리하기!' : '재료를 넣어주세요'}
+                            </motion.button>
                         </div>
                     </div>
                 </div>
             );
         }
+
 
         function FailedScreen({ failedDish, ingredientCost, onRetry }) {
             if (!failedDish) return null;
